@@ -1,6 +1,6 @@
 # 网上商城购物系统（简化微服务版）
 
-基于 Spring Boot + Spring Cloud 的微服务架构网上商城系统。从原版项目简化而来，去除了 Nacos、JWT、Resilience4J 等复杂组件，采用 Session + Cookie 认证方案，保留核心业务功能和 Feign 服务间调用。
+基于 Spring Boot + Spring Cloud 的微服务架构网上商城系统。从原版项目简化而来，去除了 Nacos、JWT、Redis、Resilience4J 等复杂组件，采用 Token + 内存缓存方案，保留核心业务功能和 Feign 服务间调用。
 
 ---
 
@@ -11,7 +11,7 @@
 ### 核心功能
 
 **用户端**
-- 用户注册、登录、登出（Session + Cookie 认证）
+- 用户注册、登录、登出（Token 认证，内存存储）
 - 商品浏览：列表、详情、热门推荐、新品推荐
 - 商品搜索：按分类筛选、关键字搜索、分页查询
 - 购物车管理：添加、修改数量、选中/取消、删除
@@ -21,7 +21,7 @@
 **管理员端**
 - 仪表盘：统计商品数、订单数、用户数（跨服务 Feign 调用）
 - 商品管理：增删改查，上下架状态
-- 分类管理：两级分类层级结构
+- 分类管理：单级分类结构
 - 轮播图管理：增删改查
 - 订单管理：查看所有订单、发货操作
 
@@ -37,8 +37,7 @@
 | 服务间调用 | OpenFeign | — |
 | ORM 框架 | MyBatis-Plus | 3.5.6 |
 | 数据库 | MySQL | 8.x |
-| 缓存 | Redis | — |
-| 用户认证 | Spring Session + Cookie | — |
+| 用户认证 | Token + 内存存储 | — |
 | API 文档 | Knife4j (OpenAPI 3) | 4.4.0 |
 | 工具库 | Hutool | 5.8.26 |
 | 前端框架 | Vue 3 + Element Plus | 3.4.x |
@@ -51,11 +50,12 @@
 | 维度 | 原版项目 | 本项目（简化版） |
 |------|---------|----------------|
 | 服务注册中心 | Nacos | ❌ 去掉，地址写死在配置文件 |
-| 用户认证 | JWT Token + Redis 黑名单 | ✅ Spring Session + Cookie |
-| 网关鉴权 | JWT AuthGlobalFilter | ❌ 去掉，Gateway 只做路由 |
+| 用户认证 | JWT Token + Redis 黑名单 | ✅ Token + 内存 Map 存储 |
+| 网关鉴权 | JWT AuthGlobalFilter | ✅ Token AuthGlobalFilter（调用 mall-user 验证） |
 | 熔断降级 | Resilience4J | ❌ 去掉 |
 | Feign 调用 | Feign + Fallback + 超时重试 | ✅ 简化版，url 写死，无熔断 |
-| Redis 用途 | 缓存 + Token 黑名单 | ✅ 缓存 + Session 存储 |
+| 缓存 | Redis | ✅ 本地内存缓存（静态变量） |
+| Session 存储 | Spring Session + Redis | ❌ 去掉，改用 Token |
 
 ---
 
@@ -66,12 +66,14 @@ online-shopping-springboot/
 ├── pom.xml                              # 父 POM（统一版本管理）
 ├── sql/
 │   └── init.sql                         # 数据库初始化脚本
+├── images/                              # 商品图片、轮播图
 │
 ├── mall-common/                         # 公共模块
 │   └── src/main/java/com/mall/common/
 │       ├── config/
 │       │   ├── MybatisPlusConfig.java   # MyBatis-Plus 分页 + 自动填充
-│       │   └── RedisConfig.java         # Redis 序列化配置
+│       │   ├── WebMvcConfig.java        # 拦截器注册、白名单、CORS
+│       │   └── LoginInterceptor.java    # 登录拦截器（验证 X-User-* Header）
 │       ├── entity/
 │       │   └── BaseEntity.java          # 实体基类（id, createTime, updateTime）
 │       ├── exception/
@@ -81,18 +83,21 @@ online-shopping-springboot/
 │       │   ├── R.java                   # 统一响应封装
 │       │   └── PageResult.java          # 分页结果封装
 │       └── util/
-│           └── UserContext.java         # 用户上下文（基于 Session）
+│           └── UserContext.java         # 用户上下文（基于 ThreadLocal）
 │
 ├── mall-gateway/                        # API 网关（:8080）
-│   └── src/main/resources/
-│       └── application.yml              # 路由规则、CORS 配置
+│   └── src/main/java/com/mall/gateway/
+│       ├── GatewayApplication.java
+│       └── filter/
+│           └── AuthGlobalFilter.java    # 全局鉴权过滤器（调用 mall-user 验证 Token）
 │
 ├── mall-user/                           # 用户服务（:8081）
 │   └── src/main/java/com/mall/user/
+│       ├── UserApplication.java
 │       ├── config/
 │       │   └── SecurityConfig.java      # Spring Security 配置（BCrypt）
 │       ├── controller/
-│       │   └── UserController.java      # 用户接口（注册/登录/登出/信息/地址）
+│       │   └── UserController.java      # 用户接口（注册/登录/登出/信息/地址/验证）
 │       ├── service/
 │       │   ├── UserService.java
 │       │   └── UserAddressService.java
@@ -112,8 +117,9 @@ online-shopping-springboot/
 │
 ├── mall-product/                        # 商品服务（:8082）
 │   └── src/main/java/com/mall/product/
+│       ├── ProductApplication.java
 │       ├── controller/
-│       │   ├── ProductController.java       # 商品接口（列表/详情/热门/新品）
+│       │   ├── ProductController.java       # 商品接口
 │       │   ├── CategoryController.java      # 分类接口
 │       │   ├── BannerController.java        # 轮播图接口
 │       │   ├── AdminProductController.java  # 管理员-商品 CRUD
@@ -128,9 +134,9 @@ online-shopping-springboot/
 │       │   ├── CategoryMapper.java
 │       │   └── BannerMapper.java
 │       ├── entity/
-│       │   ├── Product.java             # 商品实体
-│       │   ├── Category.java            # 分类实体
-│       │   └── Banner.java              # 轮播图实体
+│       │   ├── Product.java
+│       │   ├── Category.java
+│       │   └── Banner.java
 │       ├── dto/
 │       │   └── ProductDTO.java
 │       └── feign/
@@ -138,6 +144,7 @@ online-shopping-springboot/
 │
 ├── mall-order/                          # 订单服务（:8083）
 │   └── src/main/java/com/mall/order/
+│       ├── OrderApplication.java
 │       ├── controller/
 │       │   ├── CartController.java           # 购物车接口
 │       │   ├── OrderController.java          # 订单接口
@@ -151,9 +158,9 @@ online-shopping-springboot/
 │       │   ├── OrderInfoMapper.java
 │       │   └── OrderItemMapper.java
 │       ├── entity/
-│       │   ├── Cart.java                 # 购物车实体
-│       │   ├── OrderInfo.java            # 订单实体
-│       │   └── OrderItem.java            # 订单明细实体
+│       │   ├── Cart.java
+│       │   ├── OrderInfo.java
+│       │   └── OrderItem.java
 │       ├── dto/
 │       │   ├── CreateOrderDTO.java
 │       │   ├── OrderDTO.java
@@ -186,7 +193,8 @@ online-shopping-springboot/
                                ▼
                     ┌─────────────────────┐
                     │   Gateway (:8080)    │
-                    │   路由转发 + CORS     │
+                    │  路由转发 + Token鉴权 │
+                    │  + CORS + 静态资源   │
                     └──┬──────┬──────┬────┘
                        │      │      │
             ┌──────────┘      │      └──────────┐
@@ -195,6 +203,7 @@ online-shopping-springboot/
     │ mall-user    │  │ mall-product │  │ mall-order   │
     │   (:8081)    │  │   (:8082)    │  │   (:8083)    │
     │  用户服务     │  │  商品服务     │  │  订单服务     │
+    │ + 静态资源   │  │              │  │              │
     └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
            │                 │                  │
            │                 │◄───Feign─────────┤
@@ -202,15 +211,38 @@ online-shopping-springboot/
            │                 │                  │
            └─────────────────┼──────────────────┘
                              │
-                    ┌────────┴────────┐
-                    │  MySQL + Redis  │
-                    └─────────────────┘
+                         ┌───┴───┐
+                         │ MySQL │
+                         └───────┘
 ```
 
-**服务间调用关系**
-- `mall-order` 通过 Feign 调用 `mall-product`：获取商品信息、扣减/恢复库存
-- `mall-order` 通过 Feign 调用 `mall-user`：获取收货地址、统计用户数
-- `mall-order` 的 `AdminDashboardController` 聚合三个服务的统计数据
+### 认证流程
+
+```
+1. 用户登录 → mall-user 生成 Token（UUID），存入内存 ConcurrentHashMap
+2. 返回 Token 给前端，前端存入 localStorage
+3. 后续请求 → 前端在 Authorization Header 中携带 Bearer Token
+4. 请求到达 Gateway → AuthGlobalFilter 拦截
+5. 调用 mall-user /api/user/validate 验证 Token → 获取用户信息
+6. 设置 X-User-Id / X-User-Username / X-User-Role Header → 转发到下游服务
+7. 下游服务 LoginInterceptor 从 Header 读取用户信息 → 存入 UserContext（ThreadLocal）
+```
+
+### 服务间调用关系
+
+```
+mall-order ──Feign──→ mall-product
+    │                     │
+    │ getProduct()        │ 返回商品信息
+    │ deductStock()       │ 扣减库存
+    │ restoreStock()      │ 恢复库存
+    │ countProducts()     │ 统计商品数
+    │
+    └──Feign──→ mall-user
+                     │
+                     │ getAddress()  → 返回收货地址
+                     │ countUsers()  → 统计用户数
+```
 
 ---
 
@@ -255,7 +287,6 @@ banner (轮播图表)  独立表
 - JDK 17
 - Maven 3.9+
 - MySQL 8.x
-- Redis
 - Node.js 18+（前端）
 
 ### 1. 初始化数据库
@@ -266,12 +297,12 @@ mysql -u root -p --default-character-set=utf8mb4 < sql/init.sql
 
 ### 2. 修改配置
 
-各服务的 `application.yml` 中修改 MySQL 和 Redis 连接信息（默认 `localhost`，密码 `root`）。
+各服务的 `application.yml` 中修改 MySQL 连接信息（默认 `localhost`，密码 `root`）。
 
 ### 3. 启动后端服务
 
 ```bash
-# 按顺序启动（确保 MySQL 和 Redis 已运行）
+# 按顺序启动
 cd mall-user     && mvn spring-boot:run    # :8081
 cd mall-product  && mvn spring-boot:run    # :8082
 cd mall-order    && mvn spring-boot:run    # :8083
@@ -295,6 +326,13 @@ npm run dev    # :5173
   - 商品服务：`http://localhost:8082/doc.html`
   - 订单服务：`http://localhost:8083/doc.html`
 
+### 默认账号
+
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 管理员 | admin | admin123 |
+| 普通用户 | zhangsan | user123 |
+
 ---
 
 ## API 接口总览
@@ -306,11 +344,12 @@ npm run dev    # :5173
 | POST | `/register` | 用户注册 | 否 |
 | POST | `/login` | 用户登录 | 否 |
 | POST | `/logout` | 用户登出 | 是 |
+| GET | `/validate` | 验证 Token（供 Gateway 调用） | 否 |
 | GET | `/info` | 获取用户信息 | 是 |
 | PUT | `/info` | 更新用户信息 | 是 |
 | GET | `/address/list` | 收货地址列表 | 是 |
 | POST | `/address` | 新增收货地址 | 是 |
-| PUT | `/address/{id}` | 修改收货地址 | 是 |
+| PUT | `/address` | 修改收货地址 | 是 |
 | DELETE | `/address/{id}` | 删除收货地址 | 是 |
 
 ### 商品服务 `/api/product`
