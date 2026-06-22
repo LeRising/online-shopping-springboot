@@ -12,11 +12,13 @@ import com.mall.product.mapper.CategoryMapper;
 import com.mall.product.mapper.ProductMapper;
 import com.mall.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -26,17 +28,17 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductMapper productMapper;
     private final CategoryMapper categoryMapper;
-    private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String CACHE_PRODUCT_DETAIL = "product:detail:";
-    private static final long DETAIL_TTL_MINUTES = 30;
+    /** 热门商品缓存 */
+    private static List<ProductDTO> hotProductsCache;
+    /** 新品缓存 */
+    private static List<ProductDTO> newProductsCache;
 
     @Override
     public PageResult<ProductDTO> list(Integer page, Integer size, Long categoryId, String keyword) {
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Product::getStatus, 1);
         if (categoryId != null) {
-            // 查询该分类及其子分类
             List<Long> categoryIds = categoryMapper.selectList(
                     new LambdaQueryWrapper<Category>().eq(Category::getParentId, categoryId))
                     .stream().map(Category::getId).collect(Collectors.toList());
@@ -56,49 +58,39 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDTO getDetail(Long id) {
-        String cacheKey = CACHE_PRODUCT_DETAIL + id;
-        try {
-            Object cached = redisTemplate.opsForValue().get(cacheKey);
-            if (cached instanceof ProductDTO) {
-                return (ProductDTO) cached;
-            }
-            if (cached != null) {
-                redisTemplate.delete(cacheKey);
-            }
-        } catch (Exception e) {
-            try { redisTemplate.delete(cacheKey); } catch (Exception ignored) {}
-        }
-
         Product product = productMapper.selectById(id);
         if (product == null) {
             throw new BusinessException("商品不存在");
         }
-        ProductDTO dto = toDTO(product);
-
-        try {
-            redisTemplate.opsForValue().set(cacheKey, dto, DETAIL_TTL_MINUTES, TimeUnit.MINUTES);
-        } catch (Exception ignored) {}
-        return dto;
+        return toDTO(product);
     }
 
     @Override
     public List<ProductDTO> getHotProducts() {
+        if (hotProductsCache != null) {
+            return hotProductsCache;
+        }
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Product::getStatus, 1)
                 .orderByDesc(Product::getSales)
                 .last("LIMIT 8");
-        return productMapper.selectList(wrapper).stream()
+        hotProductsCache = productMapper.selectList(wrapper).stream()
                 .map(this::toDTO).collect(Collectors.toList());
+        return hotProductsCache;
     }
 
     @Override
     public List<ProductDTO> getNewProducts() {
+        if (newProductsCache != null) {
+            return newProductsCache;
+        }
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Product::getStatus, 1)
                 .orderByDesc(Product::getCreateTime)
                 .last("LIMIT 8");
-        return productMapper.selectList(wrapper).stream()
+        newProductsCache = productMapper.selectList(wrapper).stream()
                 .map(this::toDTO).collect(Collectors.toList());
+        return newProductsCache;
     }
 
     @Override
@@ -108,18 +100,19 @@ public class ProductServiceImpl implements ProductService {
             product.setStatus(1);
         }
         productMapper.insert(product);
+        clearCache();
     }
 
     @Override
     public void update(Product product) {
         productMapper.updateById(product);
-        redisTemplate.delete(CACHE_PRODUCT_DETAIL + product.getId());
+        clearCache();
     }
 
     @Override
     public void delete(Long id) {
         productMapper.deleteById(id);
-        redisTemplate.delete(CACHE_PRODUCT_DETAIL + id);
+        clearCache();
     }
 
     @Override
@@ -127,7 +120,7 @@ public class ProductServiceImpl implements ProductService {
     public boolean deductStock(Long id, int count) {
         int rows = productMapper.deductStock(id, count);
         if (rows > 0) {
-            try { redisTemplate.delete(CACHE_PRODUCT_DETAIL + id); } catch (Exception ignored) {}
+            clearCache();
             return true;
         }
         Product product = productMapper.selectById(id);
@@ -141,13 +134,18 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public boolean restoreStock(Long id, int count) {
         int rows = productMapper.restoreStock(id, count);
-        try { redisTemplate.delete(CACHE_PRODUCT_DETAIL + id); } catch (Exception ignored) {}
+        clearCache();
         return rows > 0;
     }
 
     @Override
     public long count() {
         return productMapper.selectCount(null);
+    }
+
+    private void clearCache() {
+        hotProductsCache = null;
+        newProductsCache = null;
     }
 
     private ProductDTO toDTO(Product product) {

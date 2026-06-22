@@ -8,7 +8,6 @@ import com.mall.order.dto.OrderDTO;
 import com.mall.order.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,26 +21,26 @@ public class AdminOrderController {
 
     @Operation(summary = "所有订单列表")
     @GetMapping("/list")
-    public R<PageResult<OrderDTO>> list(HttpSession session,
+    public R<PageResult<OrderDTO>> list(
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        checkAdmin(session);
+        checkAdmin();
         return R.ok(orderService.listAllOrders(status, page, size));
     }
 
     @Operation(summary = "发货")
     @PutMapping("/ship/{id}")
-    public R<Void> ship(HttpSession session, @PathVariable Long id) {
-        checkAdmin(session);
+    public R<Void> ship(@PathVariable Long id) {
+        checkAdmin();
         orderService.shipOrder(id);
         return R.ok();
     }
 
-    private void checkAdmin(HttpSession session) {
-        Integer role = UserContext.getRole(session);
+    private void checkAdmin() {
+        Integer role = UserContext.getRole();
         if (role == null || role != 1) {
-            throw new BusinessException(403, "无权限，需要管理员身份");
+            throw new BusinessException(403, "无管理员权限");
         }
     }
 }

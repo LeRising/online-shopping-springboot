@@ -7,7 +7,6 @@ import com.mall.product.entity.Banner;
 import com.mall.product.service.BannerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,37 +22,37 @@ public class AdminBannerController {
 
     @Operation(summary = "轮播图列表")
     @GetMapping("/list")
-    public R<List<Banner>> list(HttpSession session) {
-        checkAdmin(session);
+    public R<List<Banner>> list() {
+        checkAdmin();
         return R.ok(bannerService.list());
     }
 
     @Operation(summary = "新增轮播图")
     @PostMapping
-    public R<Void> save(HttpSession session, @RequestBody Banner banner) {
-        checkAdmin(session);
+    public R<Void> save(@RequestBody Banner banner) {
+        checkAdmin();
         bannerService.save(banner);
         return R.ok();
     }
 
     @Operation(summary = "修改轮播图")
     @PutMapping
-    public R<Void> update(HttpSession session, @RequestBody Banner banner) {
-        checkAdmin(session);
+    public R<Void> update(@RequestBody Banner banner) {
+        checkAdmin();
         bannerService.update(banner);
         return R.ok();
     }
 
     @Operation(summary = "删除轮播图")
     @DeleteMapping("/{id}")
-    public R<Void> delete(HttpSession session, @PathVariable Long id) {
-        checkAdmin(session);
+    public R<Void> delete(@PathVariable Long id) {
+        checkAdmin();
         bannerService.delete(id);
         return R.ok();
     }
 
-    private void checkAdmin(HttpSession session) {
-        Integer role = UserContext.getRole(session);
+    private void checkAdmin() {
+        Integer role = UserContext.getRole();
         if (role == null || role != 1) {
             throw new BusinessException(403, "无管理员权限");
         }

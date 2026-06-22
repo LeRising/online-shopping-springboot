@@ -8,7 +8,6 @@ import com.mall.order.feign.UserFeignClient;
 import com.mall.order.mapper.OrderInfoMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +28,8 @@ public class AdminDashboardController {
 
     @Operation(summary = "统计数据")
     @GetMapping("/stats")
-    public R<Map<String, Object>> stats(HttpSession session) {
-        checkAdmin(session);
+    public R<Map<String, Object>> stats() {
+        checkAdmin();
         Map<String, Object> result = new HashMap<>();
 
         long orderCount = orderInfoMapper.selectCount(null);
@@ -57,10 +56,10 @@ public class AdminDashboardController {
         return R.ok(result);
     }
 
-    private void checkAdmin(HttpSession session) {
-        Integer role = UserContext.getRole(session);
+    private void checkAdmin() {
+        Integer role = UserContext.getRole();
         if (role == null || role != 1) {
-            throw new BusinessException(403, "无权限，需要管理员身份");
+            throw new BusinessException(403, "无管理员权限");
         }
     }
 }

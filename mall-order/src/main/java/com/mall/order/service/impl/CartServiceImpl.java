@@ -9,13 +9,12 @@ import com.mall.order.feign.ProductFeignClient;
 import com.mall.order.mapper.CartMapper;
 import com.mall.order.service.CartService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,35 +23,22 @@ public class CartServiceImpl implements CartService {
 
     private final CartMapper cartMapper;
     private final ProductFeignClient productFeignClient;
-    private final RedisTemplate<String, Object> redisTemplate;
-
-    private static final String CART_CACHE_PREFIX = "cart:list:";
-    private static final long CART_CACHE_TTL = 10;
 
     @Override
     public List<CartDTO> listCart(Long userId) {
-        String cacheKey = CART_CACHE_PREFIX + userId;
-        try {
-            Object cached = redisTemplate.opsForValue().get(cacheKey);
-            if (cached instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<CartDTO> list = (List<CartDTO>) cached;
-                return list;
-            }
-        } catch (Exception e) { }
-
         List<Cart> cartList = cartMapper.selectList(
                 new LambdaQueryWrapper<Cart>()
                         .eq(Cart::getUserId, userId)
                         .orderByDesc(Cart::getCreateTime));
 
-        List<CartDTO> result = cartList.stream().map(cart -> {
+        return cartList.stream().map(cart -> {
             CartDTO dto = new CartDTO();
             dto.setId(cart.getId());
             dto.setProductId(cart.getProductId());
             dto.setQuantity(cart.getQuantity());
             dto.setChecked(cart.getChecked());
 
+            // 通过 Feign 获取商品信息
             try {
                 R<Map<String, Object>> productResult = productFeignClient.getProduct(cart.getProductId());
                 if (productResult != null && productResult.getCode() == 200 && productResult.getData() != null) {
@@ -73,12 +59,6 @@ public class CartServiceImpl implements CartService {
             }
             return dto;
         }).collect(Collectors.toList());
-
-        try {
-            redisTemplate.opsForValue().set(cacheKey, result, CART_CACHE_TTL, TimeUnit.MINUTES);
-        } catch (Exception ignored) { }
-
-        return result;
     }
 
     @Override
@@ -98,7 +78,6 @@ public class CartServiceImpl implements CartService {
             cart.setChecked(1);
             cartMapper.insert(cart);
         }
-        clearCartCache(userId);
     }
 
     @Override
@@ -113,7 +92,6 @@ public class CartServiceImpl implements CartService {
             cart.setQuantity(quantity);
             cartMapper.updateById(cart);
         }
-        clearCartCache(userId);
     }
 
     @Override
@@ -123,7 +101,6 @@ public class CartServiceImpl implements CartService {
             throw new BusinessException("购物车项不存在");
         }
         cartMapper.deleteById(cartId);
-        clearCartCache(userId);
     }
 
     @Override
@@ -134,12 +111,5 @@ public class CartServiceImpl implements CartService {
         }
         cart.setChecked(checked);
         cartMapper.updateById(cart);
-        clearCartCache(userId);
-    }
-
-    private void clearCartCache(Long userId) {
-        try {
-            redisTemplate.delete(CART_CACHE_PREFIX + userId);
-        } catch (Exception ignored) { }
     }
 }

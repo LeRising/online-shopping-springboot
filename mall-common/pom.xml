@@ -12,23 +12,13 @@
 
     <artifactId>mall-common</artifactId>
     <name>mall-common</name>
-    <description>公共模块：统一响应、异常处理、实体基类、Session配置、MyBatis-Plus配置、Redis配置</description>
+    <description>公共模块：统一响应、异常处理、实体基类、MyBatis-Plus配置</description>
 
     <dependencies>
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <!-- Spring Session + Redis -->
-        <dependency>
-            <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session-data-redis</artifactId>
-        </dependency>
-        <!-- Spring Data Redis -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
         <!-- MyBatis-Plus -->
         <dependency>

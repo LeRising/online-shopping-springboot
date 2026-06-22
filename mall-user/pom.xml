@@ -15,7 +15,6 @@
     <description>用户服务模块</description>
 
     <dependencies>
-        <!-- 公共模块 -->
         <dependency>
             <groupId>com.mall</groupId>
             <artifactId>mall-common</artifactId>

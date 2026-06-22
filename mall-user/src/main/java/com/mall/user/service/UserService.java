@@ -3,32 +3,23 @@ package com.mall.user.service;
 import com.mall.user.dto.LoginDTO;
 import com.mall.user.dto.RegisterDTO;
 import com.mall.user.dto.UserDTO;
-import jakarta.servlet.http.HttpSession;
+
+import java.util.Map;
 
 public interface UserService {
 
-    /**
-     * 用户注册
-     */
     void register(RegisterDTO dto);
 
-    /**
-     * 用户登录，将用户信息写入Session
-     */
-    UserDTO login(LoginDTO dto, HttpSession session);
+    Map<String, Object> login(LoginDTO dto);
 
-    /**
-     * 获取用户信息（带Redis缓存）
-     */
+    void logout(String token);
+
     UserDTO getUserInfo(Long userId);
 
-    /**
-     * 更新用户信息
-     */
     void updateUserInfo(Long userId, UserDTO dto);
 
-    /**
-     * 统计用户数量
-     */
     long count();
+
+    /** 验证 Token 并返回 userId，无效返回 null */
+    Long validateToken(String token);
 }

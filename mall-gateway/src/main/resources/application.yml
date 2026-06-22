@@ -6,27 +6,22 @@ spring:
     name: mall-gateway
   cloud:
     gateway:
-      # -------- 路由规则 --------
       routes:
-        # ---- mall-user (8081) ----
         - id: mall-user
           uri: http://localhost:8081
           predicates:
             - Path=/api/user/**,/api/admin/user/**,/feign/user/**
 
-        # ---- mall-product (8082) ----
         - id: mall-product
           uri: http://localhost:8082
           predicates:
             - Path=/api/product/**,/api/banner/**,/api/admin/product/**,/api/admin/category/**,/api/admin/banner/**,/feign/product/**
 
-        # ---- mall-order (8083) ----
         - id: mall-order
           uri: http://localhost:8083
           predicates:
             - Path=/api/cart/**,/api/order/**,/api/admin/order/**,/api/admin/dashboard/**
 
-      # -------- 全局 CORS 配置 --------
       globalcors:
         cors-configurations:
           '[/**]':

@@ -4,13 +4,16 @@ import router from '../router'
 
 const request = axios.create({
   baseURL: '/api',
-  timeout: 10000,
-  withCredentials: true  // 使用 Session Cookie 认证，需要携带 Cookie
+  timeout: 10000
 })
 
-// 请求拦截器（Session 模式无需添加 Authorization Header）
+// 请求拦截器：添加 Token
 request.interceptors.request.use(
   config => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   error => Promise.reject(error)
@@ -23,6 +26,7 @@ request.interceptors.response.use(
     if (res.code !== 200) {
       ElMessage.error(res.msg || '请求失败')
       if (res.code === 401) {
+        localStorage.removeItem('token')
         localStorage.removeItem('userInfo')
         router.push('/login')
       }
@@ -32,6 +36,7 @@ request.interceptors.response.use(
   },
   error => {
     if (error.response?.status === 401) {
+      localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
       router.push('/login')
       ElMessage.error('请先登录')

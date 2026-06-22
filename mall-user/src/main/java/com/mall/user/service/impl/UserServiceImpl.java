@@ -1,6 +1,7 @@
 package com.mall.user.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mall.common.exception.BusinessException;
 import com.mall.user.dto.LoginDTO;
@@ -9,29 +10,27 @@ import com.mall.user.dto.UserDTO;
 import com.mall.user.entity.User;
 import com.mall.user.mapper.UserMapper;
 import com.mall.user.service.UserService;
-import com.mall.common.util.UserContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import jakarta.servlet.http.HttpSession;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
-    private final StringRedisTemplate stringRedisTemplate;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    private static final String USER_CACHE_KEY = "user:info:";
-    private static final long CACHE_TTL_MINUTES = 30;
+    /** Token 存储：token -> userId */
+    private static final Map<String, Long> TOKEN_STORE = new ConcurrentHashMap<>();
+    /** 用户信息缓存：userId -> UserDTO */
+    private static final Map<Long, UserDTO> USER_CACHE = new ConcurrentHashMap<>();
 
     @Override
     public void register(RegisterDTO dto) {
-        // 检查用户名是否已存在
         Long count = userMapper.selectCount(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, dto.getUsername()));
         if (count > 0) {
@@ -44,39 +43,51 @@ public class UserServiceImpl implements UserService {
         user.setNickname(dto.getNickname() != null ? dto.getNickname() : dto.getUsername());
         user.setEmail(dto.getEmail());
         user.setPhone(dto.getPhone());
-        user.setRole(0); // 默认普通用户
+        user.setRole(0);
 
         userMapper.insert(user);
     }
 
     @Override
-    public UserDTO login(LoginDTO dto, HttpSession session) {
-        // 根据用户名查询用户
+    public Map<String, Object> login(LoginDTO dto) {
         User user = userMapper.selectOne(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, dto.getUsername()));
         if (user == null) {
             throw new BusinessException("用户名或密码错误");
         }
 
-        // 校验密码
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new BusinessException("用户名或密码错误");
         }
 
-        // 将用户信息写入Session
-        UserContext.setUser(session, user.getId(), user.getUsername(), user.getRole());
+        // 生成 Token
+        String token = IdUtil.fastSimpleUUID();
+        TOKEN_STORE.put(token, user.getId());
 
-        // 返回用户DTO（不含密码）
-        return toUserDTO(user);
+        // 缓存用户信息
+        UserDTO userDTO = toUserDTO(user);
+        USER_CACHE.put(user.getId(), userDTO);
+
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("token", token);
+        result.put("userId", user.getId());
+        result.put("username", user.getUsername());
+        result.put("nickname", user.getNickname());
+        result.put("role", user.getRole());
+        return result;
+    }
+
+    @Override
+    public void logout(String token) {
+        TOKEN_STORE.remove(token);
     }
 
     @Override
     public UserDTO getUserInfo(Long userId) {
-        // 先查Redis缓存
-        String cacheKey = USER_CACHE_KEY + userId;
-        String cached = stringRedisTemplate.opsForValue().get(cacheKey);
+        // 先查缓存
+        UserDTO cached = USER_CACHE.get(userId);
         if (cached != null) {
-            return cn.hutool.json.JSONUtil.toBean(cached, UserDTO.class);
+            return cached;
         }
 
         // 缓存未命中，查数据库
@@ -86,12 +97,7 @@ public class UserServiceImpl implements UserService {
         }
 
         UserDTO userDTO = toUserDTO(user);
-
-        // 写入Redis缓存，TTL 30分钟
-        stringRedisTemplate.opsForValue().set(cacheKey,
-                cn.hutool.json.JSONUtil.toJsonStr(userDTO),
-                CACHE_TTL_MINUTES, TimeUnit.MINUTES);
-
+        USER_CACHE.put(userId, userDTO);
         return userDTO;
     }
 
@@ -108,14 +114,17 @@ public class UserServiceImpl implements UserService {
         if (dto.getAvatar() != null) user.setAvatar(dto.getAvatar());
 
         userMapper.updateById(user);
-
-        // 清除缓存
-        stringRedisTemplate.delete(USER_CACHE_KEY + userId);
+        USER_CACHE.remove(userId);
     }
 
     @Override
     public long count() {
         return userMapper.selectCount(null);
+    }
+
+    /** 验证 Token 并返回 userId */
+    public Long validateToken(String token) {
+        return TOKEN_STORE.get(token);
     }
 
     private UserDTO toUserDTO(User user) {
