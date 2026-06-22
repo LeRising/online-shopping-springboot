@@ -12,6 +12,11 @@ spring:
           predicates:
             - Path=/api/user/**,/api/admin/user/**,/feign/user/**
 
+        - id: mall-images
+          uri: http://localhost:8081
+          predicates:
+            - Path=/images/**
+
         - id: mall-product
           uri: http://localhost:8082
           predicates:
