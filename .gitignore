@@ -1,0 +1,28 @@
+# Maven
+target/
+*.jar
+*.war
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+mall-front/node_modules/
+mall-front/dist/
+
+# Logs
+*.log
+
+# Redis dump
+dump.rdb
