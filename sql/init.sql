@@ -8,7 +8,15 @@ USE mall;
 -- -----------------------------------------------------------
 -- 1. 用户表
 -- -----------------------------------------------------------
+DROP TABLE IF EXISTS `order_item`;
+DROP TABLE IF EXISTS `order_info`;
+DROP TABLE IF EXISTS `cart`;
+DROP TABLE IF EXISTS `product`;
+DROP TABLE IF EXISTS `category`;
+DROP TABLE IF EXISTS `banner`;
+DROP TABLE IF EXISTS `user_address`;
 DROP TABLE IF EXISTS `user`;
+
 CREATE TABLE `user` (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '用户ID',
     `username`    VARCHAR(50)  NOT NULL COMMENT '用户名',
@@ -27,7 +35,6 @@ CREATE TABLE `user` (
 -- -----------------------------------------------------------
 -- 2. 收货地址表
 -- -----------------------------------------------------------
-DROP TABLE IF EXISTS `user_address`;
 CREATE TABLE `user_address` (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '地址ID',
     `user_id`     BIGINT       NOT NULL COMMENT '用户ID',
@@ -47,7 +54,6 @@ CREATE TABLE `user_address` (
 -- -----------------------------------------------------------
 -- 3. 商品分类表
 -- -----------------------------------------------------------
-DROP TABLE IF EXISTS `category`;
 CREATE TABLE `category` (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '分类ID',
     `name`        VARCHAR(50)  NOT NULL COMMENT '分类名称',
@@ -63,7 +69,6 @@ CREATE TABLE `category` (
 -- -----------------------------------------------------------
 -- 4. 商品表
 -- -----------------------------------------------------------
-DROP TABLE IF EXISTS `product`;
 CREATE TABLE `product` (
     `id`             BIGINT        NOT NULL AUTO_INCREMENT COMMENT '商品ID',
     `name`           VARCHAR(200)  NOT NULL COMMENT '商品名称',
@@ -86,7 +91,6 @@ CREATE TABLE `product` (
 -- -----------------------------------------------------------
 -- 5. 购物车表
 -- -----------------------------------------------------------
-DROP TABLE IF EXISTS `cart`;
 CREATE TABLE `cart` (
     `id`          BIGINT   NOT NULL AUTO_INCREMENT COMMENT '购物车项ID',
     `user_id`     BIGINT   NOT NULL COMMENT '用户ID',
@@ -103,7 +107,6 @@ CREATE TABLE `cart` (
 -- -----------------------------------------------------------
 -- 6. 订单表
 -- -----------------------------------------------------------
-DROP TABLE IF EXISTS `order_info`;
 CREATE TABLE `order_info` (
     `id`               BIGINT        NOT NULL AUTO_INCREMENT COMMENT '订单ID',
     `order_no`         VARCHAR(50)   NOT NULL COMMENT '订单号',
@@ -124,7 +127,6 @@ CREATE TABLE `order_info` (
 -- -----------------------------------------------------------
 -- 7. 订单明细表
 -- -----------------------------------------------------------
-DROP TABLE IF EXISTS `order_item`;
 CREATE TABLE `order_item` (
     `id`            BIGINT        NOT NULL AUTO_INCREMENT COMMENT '明细ID',
     `order_id`      BIGINT        NOT NULL COMMENT '订单ID',
@@ -142,7 +144,6 @@ CREATE TABLE `order_item` (
 -- -----------------------------------------------------------
 -- 8. 轮播图表
 -- -----------------------------------------------------------
-DROP TABLE IF EXISTS `banner`;
 CREATE TABLE `banner` (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '轮播图ID',
     `image`       VARCHAR(500) NOT NULL COMMENT '图片URL',
@@ -165,27 +166,23 @@ INSERT INTO `user` (`username`, `password`, `nickname`, `role`) VALUES
 INSERT INTO `user` (`username`, `password`, `nickname`, `role`) VALUES
 ('zhangsan', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '张三', 0);
 
--- 商品分类
+-- 商品分类（只保留顶级分类）
 INSERT INTO `category` (`id`, `name`, `parent_id`, `sort`) VALUES
 (1, '手机数码', 0, 1),
 (2, '电脑办公', 0, 2),
-(3, '家用电器', 0, 3),
-(4, '手机', 1, 1),
-(5, '平板', 1, 2),
-(6, '笔记本', 2, 1),
-(7, '台式机', 2, 2);
+(3, '家用电器', 0, 3);
 
 -- 商品
 INSERT INTO `product` (`name`, `description`, `price`, `original_price`, `stock`, `category_id`, `image`, `status`, `sales`) VALUES
-('iPhone 15 Pro', 'Apple iPhone 15 Pro 256GB', 8999.00, 9999.00, 100, 4, '/images/iphone15.jpg', 1, 520),
-('华为 Mate 60', '华为 Mate 60 512GB', 6999.00, 7999.00, 80, 4, '/images/mate60.jpg', 1, 480),
-('iPad Air', 'Apple iPad Air 256GB', 4799.00, 5499.00, 60, 5, '/images/ipad.jpg', 1, 300),
-('MacBook Pro 14', 'Apple MacBook Pro 14英寸 M3', 14999.00, 16999.00, 30, 6, '/images/macbook.jpg', 1, 200),
-('小米电视 65寸', '小米电视 EA65 65英寸', 2999.00, 3999.00, 50, 3, '/images/xiaomi-tv.jpg', 1, 150),
-('联想小新 Pro 16', '联想小新Pro16 R7-7840H', 5499.00, 6299.00, 45, 6, '/images/lenovo.jpg', 1, 180);
+('iPhone 15 Pro', 'Apple iPhone 15 Pro 256GB', 8999.00, 9999.00, 100, 1, '/images/iphone15pro.png', 1, 520),
+('华为 Mate 60', '华为 Mate 60 Pro 512GB', 6999.00, 7999.00, 80, 1, '/images/mate60pro.png', 1, 480),
+('iPad Air', 'Apple iPad Air M2 256GB', 4799.00, 5499.00, 60, 1, '/images/ipad_air_m2.png', 1, 300),
+('MacBook Pro 14', 'Apple MacBook Pro 14英寸 M3', 14999.00, 16999.00, 30, 2, '/images/macbook_pro14.png', 1, 200),
+('小米14', '小米14 5G手机', 3999.00, 4299.00, 50, 3, '/images/xiaomi14.png', 1, 150),
+('联想小新 Pro 16', '联想小新Pro16 R7-7840H', 5499.00, 6299.00, 45, 2, '/images/xiaoxin_pro16.png', 1, 180);
 
 -- 轮播图
 INSERT INTO `banner` (`image`, `url`, `sort`) VALUES
-('/images/banner1.jpg', '/product/1', 1),
-('/images/banner2.jpg', '/product/2', 2),
-('/images/banner3.jpg', '/product/3', 3);
+('/images/banner_1.png', '/product/1', 1),
+('/images/banner_2.png', '/product/2', 2),
+('/images/banner_3.png', '/product/3', 3);

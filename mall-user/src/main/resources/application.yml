@@ -7,6 +7,11 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+  web:
+    resources:
+      static-locations: file:D:/CodeWorkPlace/IdeaCode/online-shopping-springboot/images/
+  mvc:
+    static-path-pattern: /images/**
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
