@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Configuration
 public class MybatisPlusConfig {
 
+    // 注册分页插件（MySQL）
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
@@ -20,6 +21,7 @@ public class MybatisPlusConfig {
         return interceptor;
     }
 
+    // 自动填充处理器：INSERT 时填充 createTime + updateTime，UPDATE 时填充 updateTime
     @Bean
     public MetaObjectHandler metaObjectHandler() {
         return new MetaObjectHandler() {

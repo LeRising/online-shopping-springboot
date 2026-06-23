@@ -22,7 +22,9 @@ import java.util.List;
 @Component
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
+    // 用于路径匹配
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    // WebClient 实例（非阻塞 HTTP 客户端），用于调用 mall-user
     private final WebClient webClient = WebClient.create();
 
     /** 白名单路径 */
@@ -40,6 +42,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 获取请求路径
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
@@ -86,6 +89,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         return WHITELIST.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
+    // 返回 401 JSON 响应
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -95,6 +99,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         return response.writeWith(Mono.just(buffer));
     }
 
+    // 从 JSON 中解析 id 字段
     private Long extractUserId(String json) {
         try {
             int idx = json.indexOf("\"id\":");
@@ -108,6 +113,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         return null;
     }
 
+    // 从 JSON 中解析 username 字段
     private String extractUsername(String json) {
         try {
             int idx = json.indexOf("\"username\":\"");
@@ -120,6 +126,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         return null;
     }
 
+    // 从 JSON 中解析 role 字段
     private Integer extractRole(String json) {
         try {
             int idx = json.indexOf("\"role\":");
@@ -133,6 +140,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         return 0;
     }
 
+    // 返回 -100，确保在其他过滤器之前执行
     @Override
     public int getOrder() {
         return -100;

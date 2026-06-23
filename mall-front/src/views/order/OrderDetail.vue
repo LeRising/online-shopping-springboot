@@ -14,6 +14,15 @@
       <el-descriptions-item label="支付时间" v-if="order.payTime">{{ order.payTime }}</el-descriptions-item>
     </el-descriptions>
 
+    <!-- 收货地址 -->
+    <h3 style="margin: 20px 0 12px;">收货地址</h3>
+    <el-descriptions :column="1" border v-if="address">
+      <el-descriptions-item label="收货人">{{ address.name }}</el-descriptions-item>
+      <el-descriptions-item label="联系电话">{{ address.phone }}</el-descriptions-item>
+      <el-descriptions-item label="收货地址">{{ address.province }}{{ address.city }}{{ address.district }}{{ address.detail }}</el-descriptions-item>
+    </el-descriptions>
+    <el-empty v-else description="暂无收货地址信息" />
+
     <h3 style="margin: 20px 0 12px;">商品明细</h3>
     <el-table :data="order.items">
       <el-table-column label="商品">
@@ -40,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getOrderDetail } from '../../api/order'
 
@@ -49,9 +58,36 @@ const router = useRouter()
 const order = ref(null)
 const loading = ref(false)
 
+// 解析地址快照
+const address = computed(() => {
+  if (!order.value || !order.value.addressSnapshot || order.value.addressSnapshot === '{}') {
+    return null
+  }
+  try {
+    // addressSnapshot 可能是字符串形式的 Map.toString()
+    // 格式如: {name=张三, phone=138xxx, province=北京, city=北京市, district=朝阳区, detail=xxx}
+    const str = order.value.addressSnapshot
+    if (str.startsWith('{') && str.endsWith('}')) {
+      const inner = str.slice(1, -1)
+      const pairs = inner.split(', ')
+      const obj = {}
+      pairs.forEach(pair => {
+        const [key, ...valueParts] = pair.split('=')
+        if (key && valueParts.length > 0) {
+          obj[key.trim()] = valueParts.join('=').trim()
+        }
+      })
+      return obj
+    }
+    return JSON.parse(str)
+  } catch (e) {
+    console.error('解析地址快照失败:', e)
+    return null
+  }
+})
+
 const getStatusType = (status) => {
   const types = ['warning', 'success', 'primary', 'success', 'info', 'danger']
-  //               0待付款    1已付款    2已发货    3已完成    4已取消   5已退货
   return types[status] || 'info'
 }
 

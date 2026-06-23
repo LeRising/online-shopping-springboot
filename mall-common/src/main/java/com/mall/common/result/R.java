@@ -2,8 +2,14 @@ package com.mall.common.result;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
+/**
+ * 定义统一的响应封装
+ * @param <T>
+ */
 @Data
-public class R<T> implements java.io.Serializable {
+public class R<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

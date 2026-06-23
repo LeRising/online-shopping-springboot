@@ -99,16 +99,36 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
+        // 获取收货地址快照
         String addressSnapshot = "{}";
-        if (dto.getAddressId() != null) {
-            try {
+        try {
+            Map<String, Object> addrData = null;
+            
+            if (dto.getAddressId() != null) {
+                // 指定了地址ID，获取该地址
                 R<Map<String, Object>> addrResult = userFeignClient.getAddress(userId, dto.getAddressId());
                 if (addrResult != null && addrResult.getCode() == 200 && addrResult.getData() != null) {
-                    addressSnapshot = addrResult.getData().toString();
+                    addrData = addrResult.getData();
                 }
-            } catch (Exception e) {
-                log.warn("获取收货地址失败: {}", e.getMessage());
+            } else {
+                // 未指定地址，获取用户的地址列表，使用默认地址或第一个地址
+                R<List<Map<String, Object>>> addrListResult = userFeignClient.getAddresses(userId);
+                if (addrListResult != null && addrListResult.getCode() == 200 
+                        && addrListResult.getData() != null && !addrListResult.getData().isEmpty()) {
+                    List<Map<String, Object>> addresses = addrListResult.getData();
+                    // 优先使用默认地址（isDefault=1），否则使用第一个
+                    addrData = addresses.stream()
+                            .filter(a -> a.get("isDefault") != null && "1".equals(String.valueOf(a.get("isDefault"))))
+                            .findFirst()
+                            .orElse(addresses.get(0));
+                }
             }
+            
+            if (addrData != null) {
+                addressSnapshot = addrData.toString();
+            }
+        } catch (Exception e) {
+            log.warn("获取收货地址失败: {}", e.getMessage());
         }
 
         OrderInfo order = new OrderInfo();

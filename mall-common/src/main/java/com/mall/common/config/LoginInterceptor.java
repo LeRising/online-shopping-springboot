@@ -14,6 +14,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // OPTIONS 请求直接放行
+        // 浏览器的预检请求，询问服务器是否允许跨域
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }

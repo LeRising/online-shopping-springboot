@@ -9,16 +9,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * 定义全局异常处理器
+ */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 返回业务异常的 code + message（WARN 级别日志）
     @ExceptionHandler(BusinessException.class)
     public R<Void> handleBusinessException(BusinessException e) {
         log.warn("业务异常: {}", e.getMessage());
         return R.fail(e.getCode(), e.getMessage());
     }
 
+    // 参数校验失败，返回 400 + 字段错误信息（多个字段用 ; 连接）
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<Void> handleValidationException(MethodArgumentNotValidException e) {
@@ -29,6 +34,7 @@ public class GlobalExceptionHandler {
         return R.fail(400, message);
     }
 
+    // 参数绑定失败，返回 400 + 字段错误信息
     @ExceptionHandler(BindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<Void> handleBindException(BindException e) {
@@ -39,6 +45,7 @@ public class GlobalExceptionHandler {
         return R.fail(400, message);
     }
 
+    // 兜底处理，返回 500 + "系统内部错误"（ERROR 级别日志）
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public R<Void> handleException(Exception e) {

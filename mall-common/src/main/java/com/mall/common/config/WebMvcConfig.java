@@ -34,6 +34,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns(EXCLUDE_PATHS);
     }
 
+    // 这段代码会在响应头中添加，然后浏览器看到这些请求头就知道需要放行
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")

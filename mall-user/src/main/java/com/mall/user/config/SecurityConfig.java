@@ -12,11 +12,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    // 通过算法对密码进行加密
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // 禁用 CSRF，所有请求 permitAll()
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http

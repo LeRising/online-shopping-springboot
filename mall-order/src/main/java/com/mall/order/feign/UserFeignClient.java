@@ -4,6 +4,7 @@ import com.mall.common.result.R;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,6 +12,9 @@ import java.util.Map;
  */
 @FeignClient(name = "mall-user", url = "http://localhost:8081")
 public interface UserFeignClient {
+
+    @GetMapping("/feign/user/{userId}/addresses")
+    R<List<Map<String, Object>>> getAddresses(@PathVariable("userId") Long userId);
 
     @GetMapping("/feign/user/{userId}/address/{addressId}")
     R<Map<String, Object>> getAddress(@PathVariable("userId") Long userId,
