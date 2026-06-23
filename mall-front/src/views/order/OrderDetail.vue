@@ -9,7 +9,6 @@
       <el-descriptions-item label="总金额">
         <span style="color: #f56c6c; font-size: 18px;">¥{{ order.totalAmount }}</span>
       </el-descriptions-item>
-      <el-descriptions-item label="付款方式">{{ payMethodText(order) }}</el-descriptions-item>
       <el-descriptions-item label="下单时间">{{ order.createTime }}</el-descriptions-item>
       <el-descriptions-item label="支付时间" v-if="order.payTime">{{ order.payTime }}</el-descriptions-item>
     </el-descriptions>
@@ -64,8 +63,6 @@ const address = computed(() => {
     return null
   }
   try {
-    // addressSnapshot 可能是字符串形式的 Map.toString()
-    // 格式如: {name=张三, phone=138xxx, province=北京, city=北京市, district=朝阳区, detail=xxx}
     const str = order.value.addressSnapshot
     if (str.startsWith('{') && str.endsWith('}')) {
       const inner = str.slice(1, -1)
@@ -89,15 +86,6 @@ const address = computed(() => {
 const getStatusType = (status) => {
   const types = ['warning', 'success', 'primary', 'success', 'info', 'danger']
   return types[status] || 'info'
-}
-
-const payMethods = ['微信支付', '支付宝', '云闪付']
-const payMethodText = (o) => {
-  if (o.payMethodText) return o.payMethodText
-  if (o.payMethod !== null && o.payMethod !== undefined) {
-    return payMethods[o.payMethod] || '未知'
-  }
-  return '—'
 }
 
 onMounted(async () => {
