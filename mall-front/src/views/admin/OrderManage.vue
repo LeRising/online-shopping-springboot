@@ -15,11 +15,6 @@
       <el-table-column prop="orderNo" label="订单号" min-width="180" />
       <el-table-column prop="userId" label="用户ID" width="80" />
       <el-table-column prop="totalAmount" label="金额" width="120" />
-      <el-table-column label="付款方式" width="100">
-        <template #default="{ row }">
-          <span class="pay-text">{{ payMethodText(row) }}</span>
-        </template>
-      </el-table-column>
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
           <el-tag :type="getStatusType(row.status)">{{ row.statusText }}</el-tag>
@@ -55,15 +50,6 @@ const total = ref(0)
 const getStatusType = (status) => {
   const types = ['warning', 'success', 'primary', 'success', 'info']
   return types[status] || 'info'
-}
-
-const payMethods = ['微信支付', '支付宝', '云闪付']
-const payMethodText = (o) => {
-  if (o.payMethodText) return o.payMethodText
-  if (o.payMethod !== null && o.payMethod !== undefined) {
-    return payMethods[o.payMethod] || '未知'
-  }
-  return '—'
 }
 
 const loadOrders = async () => {
