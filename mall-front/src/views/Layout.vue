@@ -58,7 +58,7 @@
 
     <!-- 底部 -->
     <el-footer class="footer">
-      <p>© 2024 网上商城 - 基于 SpringCloud 微服务架构</p>
+      <p>© 2026 网上商城 - 基于 SpringCloud 微服务架构</p>
     </el-footer>
   </el-container>
 </template>
