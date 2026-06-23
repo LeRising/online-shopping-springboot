@@ -29,12 +29,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 登录拦截器
         registry.addInterceptor(new LoginInterceptor())
                 .addPathPatterns(AUTH_PATHS)
                 .excludePathPatterns(EXCLUDE_PATHS);
+
+        // 管理员权限拦截器（在登录拦截器之后执行）
+        registry.addInterceptor(new AdminInterceptor())
+                .addPathPatterns("/api/admin/**");
     }
 
-    // 这段代码会在响应头中添加，然后浏览器看到这些请求头就知道需要放行
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")

@@ -1,8 +1,7 @@
 package com.mall.order.controller;
 
-import com.mall.common.exception.BusinessException;
+import com.mall.common.annotation.RequireAdmin;
 import com.mall.common.result.R;
-import com.mall.common.util.UserContext;
 import com.mall.order.feign.ProductFeignClient;
 import com.mall.order.feign.UserFeignClient;
 import com.mall.order.mapper.OrderInfoMapper;
@@ -26,10 +25,10 @@ public class AdminDashboardController {
     private final ProductFeignClient productFeignClient;
     private final UserFeignClient userFeignClient;
 
+    @RequireAdmin
     @Operation(summary = "统计数据")
     @GetMapping("/stats")
     public R<Map<String, Object>> stats() {
-        checkAdmin();
         Map<String, Object> result = new HashMap<>();
 
         long orderCount = orderInfoMapper.selectCount(null);
@@ -54,12 +53,5 @@ public class AdminDashboardController {
         }
 
         return R.ok(result);
-    }
-
-    private void checkAdmin() {
-        Integer role = UserContext.getRole();
-        if (role == null || role != 1) {
-            throw new BusinessException(403, "无管理员权限");
-        }
     }
 }

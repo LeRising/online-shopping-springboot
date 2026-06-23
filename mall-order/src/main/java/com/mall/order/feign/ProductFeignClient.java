@@ -1,10 +1,9 @@
 package com.mall.order.feign;
 
 import com.mall.common.result.R;
+import com.mall.order.dto.ProductSimpleDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 /**
  * 商品服务 Feign 客户端（简化版，无熔断降级）
@@ -13,7 +12,7 @@ import java.util.Map;
 public interface ProductFeignClient {
 
     @GetMapping("/feign/product/{id}")
-    R<Map<String, Object>> getProduct(@PathVariable("id") Long id);
+    R<ProductSimpleDTO> getProduct(@PathVariable("id") Long id);
 
     @PutMapping("/feign/product/deduct-stock")
     R<Void> deductStock(@RequestParam("productId") Long productId,

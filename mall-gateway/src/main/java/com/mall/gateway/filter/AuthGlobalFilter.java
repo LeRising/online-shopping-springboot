@@ -1,5 +1,7 @@
 package com.mall.gateway.filter;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -22,10 +24,9 @@ import java.util.List;
 @Component
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
-    // 用于路径匹配
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    // WebClient 实例（非阻塞 HTTP 客户端），用于调用 mall-user
     private final WebClient webClient = WebClient.create();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /** 白名单路径 */
     private static final List<String> WHITELIST = Arrays.asList(
@@ -42,7 +43,6 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // 获取请求路径
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
@@ -59,28 +59,39 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
         final String token = authHeader.substring(7);
 
-        // 调用 mall-user 验证 Token（使用不需认证的 validate 接口）
+        // 调用 mall-user 验证 Token
         return webClient.get()
                 .uri("http://localhost:8081/api/user/validate")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(String.class)
                 .flatMap(body -> {
-                    Long userId = extractUserId(body);
-                    String username = extractUsername(body);
-                    Integer role = extractRole(body);
+                    try {
+                        JsonNode root = objectMapper.readTree(body);
+                        JsonNode data = root.path("data");
 
-                    if (userId == null) {
+                        if (data.isMissingNode() || data.isNull()) {
+                            return unauthorized(exchange);
+                        }
+
+                        Long userId = data.path("id").asLong(0);
+                        if (userId == 0) {
+                            return unauthorized(exchange);
+                        }
+
+                        String username = data.path("username").asText("");
+                        int role = data.path("role").asInt(0);
+
+                        ServerHttpRequest mutatedRequest = request.mutate()
+                                .header("X-User-Id", String.valueOf(userId))
+                                .header("X-Username", username)
+                                .header("X-User-Role", String.valueOf(role))
+                                .build();
+
+                        return chain.filter(exchange.mutate().request(mutatedRequest).build());
+                    } catch (Exception e) {
                         return unauthorized(exchange);
                     }
-
-                    ServerHttpRequest mutatedRequest = request.mutate()
-                            .header("X-User-Id", String.valueOf(userId))
-                            .header("X-Username", username != null ? username : "")
-                            .header("X-User-Role", String.valueOf(role != null ? role : 0))
-                            .build();
-
-                    return chain.filter(exchange.mutate().request(mutatedRequest).build());
                 })
                 .onErrorResume(e -> unauthorized(exchange));
     }
@@ -89,7 +100,6 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         return WHITELIST.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    // 返回 401 JSON 响应
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -99,48 +109,6 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         return response.writeWith(Mono.just(buffer));
     }
 
-    // 从 JSON 中解析 id 字段
-    private Long extractUserId(String json) {
-        try {
-            int idx = json.indexOf("\"id\":");
-            if (idx > 0) {
-                String sub = json.substring(idx + 5).trim();
-                int end = sub.indexOf(",");
-                if (end < 0) end = sub.indexOf("}");
-                return Long.parseLong(sub.substring(0, end).trim());
-            }
-        } catch (Exception ignored) {}
-        return null;
-    }
-
-    // 从 JSON 中解析 username 字段
-    private String extractUsername(String json) {
-        try {
-            int idx = json.indexOf("\"username\":\"");
-            if (idx > 0) {
-                String sub = json.substring(idx + 12);
-                int end = sub.indexOf("\"");
-                return sub.substring(0, end);
-            }
-        } catch (Exception ignored) {}
-        return null;
-    }
-
-    // 从 JSON 中解析 role 字段
-    private Integer extractRole(String json) {
-        try {
-            int idx = json.indexOf("\"role\":");
-            if (idx > 0) {
-                String sub = json.substring(idx + 7).trim();
-                int end = sub.indexOf(",");
-                if (end < 0) end = sub.indexOf("}");
-                return Integer.parseInt(sub.substring(0, end).trim());
-            }
-        } catch (Exception ignored) {}
-        return 0;
-    }
-
-    // 返回 -100，确保在其他过滤器之前执行
     @Override
     public int getOrder() {
         return -100;

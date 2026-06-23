@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mall.common.exception.BusinessException;
 import com.mall.common.result.R;
 import com.mall.order.dto.CartDTO;
+import com.mall.order.dto.ProductSimpleDTO;
 import com.mall.order.entity.Cart;
 import com.mall.order.feign.ProductFeignClient;
 import com.mall.order.mapper.CartMapper;
@@ -11,10 +12,7 @@ import com.mall.order.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,19 +38,13 @@ public class CartServiceImpl implements CartService {
 
             // 通过 Feign 获取商品信息
             try {
-                R<Map<String, Object>> productResult = productFeignClient.getProduct(cart.getProductId());
+                R<ProductSimpleDTO> productResult = productFeignClient.getProduct(cart.getProductId());
                 if (productResult != null && productResult.getCode() == 200 && productResult.getData() != null) {
-                    Map<String, Object> product = productResult.getData();
-                    dto.setProductName((String) product.get("name"));
-                    dto.setProductImage((String) product.get("image"));
-                    Object price = product.get("price");
-                    if (price instanceof Number) {
-                        dto.setPrice(BigDecimal.valueOf(((Number) price).doubleValue()));
-                    }
-                    Object stock = product.get("stock");
-                    if (stock instanceof Number) {
-                        dto.setStock(((Number) stock).intValue());
-                    }
+                    ProductSimpleDTO product = productResult.getData();
+                    dto.setProductName(product.getName());
+                    dto.setProductImage(product.getImage());
+                    dto.setPrice(product.getPrice());
+                    dto.setStock(product.getStock());
                 }
             } catch (Exception e) {
                 dto.setProductName("商品信息获取失败");

@@ -1,33 +1,10 @@
-import request from '../utils/request'
+import { userApi } from './index'
 
-export function register(data) {
-  return request.post('/user/register', data)
-}
-
-export function login(data) {
-  return request.post('/user/login', data)
-}
-
-export function getUserInfo() {
-  return request.get('/user/info')
-}
-
-export function updateUserInfo(data) {
-  return request.put('/user/info', data)
-}
-
-export function getAddressList() {
-  return request.get('/user/address/list')
-}
-
-export function addAddress(data) {
-  return request.post('/user/address', data)
-}
-
-export function updateAddress(id, data) {
-  return request.put(`/user/address/${id}`, data)
-}
-
-export function deleteAddress(id) {
-  return request.delete(`/user/address/${id}`)
-}
+export const register = userApi.register
+export const login = userApi.login
+export const getUserInfo = userApi.getInfo
+export const updateUserInfo = userApi.updateInfo
+export const getAddressList = userApi.getAddressList
+export const addAddress = userApi.addAddress
+export const updateAddress = userApi.updateAddress
+export const deleteAddress = userApi.deleteAddress

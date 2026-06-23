@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (Cart cart : cartList) {
-            R<Map<String, Object>> productResult;
+            R<ProductSimpleDTO> productResult;
             try {
                 productResult = productFeignClient.getProduct(cart.getProductId());
             } catch (Exception e) {
@@ -66,23 +68,17 @@ public class OrderServiceImpl implements OrderService {
             if (productResult == null || productResult.getCode() != 200 || productResult.getData() == null) {
                 throw new BusinessException("商品信息获取失败: " + cart.getProductId());
             }
-            Map<String, Object> product = productResult.getData();
-
-            Object priceObj = product.get("price");
-            if (priceObj == null) {
-                throw new BusinessException("商品价格异常: " + product.get("name"));
-            }
-            BigDecimal price = BigDecimal.valueOf(((Number) priceObj).doubleValue());
+            ProductSimpleDTO product = productResult.getData();
 
             OrderItem item = new OrderItem();
             item.setProductId(cart.getProductId());
-            item.setProductName((String) product.get("name"));
-            item.setProductImage((String) product.get("image"));
-            item.setPrice(price);
+            item.setProductName(product.getName());
+            item.setProductImage(product.getImage());
+            item.setPrice(product.getPrice());
             item.setQuantity(cart.getQuantity());
             orderItems.add(item);
 
-            totalAmount = totalAmount.add(price.multiply(BigDecimal.valueOf(cart.getQuantity())));
+            totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(cart.getQuantity())));
         }
 
         for (OrderItem item : orderItems) {
