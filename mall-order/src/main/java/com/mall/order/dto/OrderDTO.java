@@ -12,8 +12,6 @@ public class OrderDTO {
     private BigDecimal totalAmount;
     private Integer status;
     private String statusText;
-    private Integer payMethod;
-    private String payMethodText;
     private String addressSnapshot;
     private LocalDateTime payTime;
     private LocalDateTime createTime;
@@ -22,11 +20,5 @@ public class OrderDTO {
     public void setStatusText() {
         String[] texts = {"待付款", "已付款", "已发货", "已完成", "已取消", "已退货"};
         this.statusText = (status != null && status >= 0 && status < texts.length) ? texts[status] : "未知";
-    }
-
-    public void setPayMethodText() {
-        String[] methods = {"微信支付", "支付宝", "云闪付"};
-        this.payMethodText = (payMethod != null && payMethod >= 0 && payMethod < methods.length)
-                ? methods[payMethod] : "未知";
     }
 }

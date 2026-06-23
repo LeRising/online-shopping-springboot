@@ -7,5 +7,4 @@ import java.util.List;
 public class CreateOrderDTO {
     private Long addressId;
     private List<Long> cartIds;
-    private Integer payMethod;
 }

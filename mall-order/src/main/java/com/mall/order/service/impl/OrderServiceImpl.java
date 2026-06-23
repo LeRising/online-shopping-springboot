@@ -22,8 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -99,27 +97,24 @@ public class OrderServiceImpl implements OrderService {
         String addressSnapshot = "{}";
         try {
             Map<String, Object> addrData = null;
-            
+
             if (dto.getAddressId() != null) {
-                // 指定了地址ID，获取该地址
                 R<Map<String, Object>> addrResult = userFeignClient.getAddress(userId, dto.getAddressId());
                 if (addrResult != null && addrResult.getCode() == 200 && addrResult.getData() != null) {
                     addrData = addrResult.getData();
                 }
             } else {
-                // 未指定地址，获取用户的地址列表，使用默认地址或第一个地址
                 R<List<Map<String, Object>>> addrListResult = userFeignClient.getAddresses(userId);
-                if (addrListResult != null && addrListResult.getCode() == 200 
+                if (addrListResult != null && addrListResult.getCode() == 200
                         && addrListResult.getData() != null && !addrListResult.getData().isEmpty()) {
                     List<Map<String, Object>> addresses = addrListResult.getData();
-                    // 优先使用默认地址（isDefault=1），否则使用第一个
                     addrData = addresses.stream()
                             .filter(a -> a.get("isDefault") != null && "1".equals(String.valueOf(a.get("isDefault"))))
                             .findFirst()
                             .orElse(addresses.get(0));
                 }
             }
-            
+
             if (addrData != null) {
                 addressSnapshot = addrData.toString();
             }
@@ -132,7 +127,6 @@ public class OrderServiceImpl implements OrderService {
         order.setUserId(userId);
         order.setTotalAmount(totalAmount);
         order.setStatus(0);
-        order.setPayMethod(dto.getPayMethod() != null ? dto.getPayMethod() : 0);
         order.setAddressSnapshot(addressSnapshot);
         orderInfoMapper.insert(order);
 
@@ -274,8 +268,6 @@ public class OrderServiceImpl implements OrderService {
         dto.setTotalAmount(order.getTotalAmount());
         dto.setStatus(order.getStatus());
         dto.setStatusText();
-        dto.setPayMethod(order.getPayMethod());
-        dto.setPayMethodText();
         dto.setAddressSnapshot(order.getAddressSnapshot());
         dto.setPayTime(order.getPayTime());
         dto.setCreateTime(order.getCreateTime());

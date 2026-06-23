@@ -14,10 +14,7 @@
     <div class="order-list">
       <el-card v-for="order in orders" :key="order.id" class="order-card" v-loading="loading">
         <div class="order-header">
-          <div>
-            <span>订单号: {{ order.orderNo }}</span>
-            <span class="pay-method-tag" v-if="payMethodText(order)">{{ payMethodText(order) }}</span>
-          </div>
+          <span>订单号: {{ order.orderNo }}</span>
           <el-tag :type="getStatusType(order.status)">{{ order.statusText }}</el-tag>
         </div>
         <div class="order-items">
@@ -78,15 +75,6 @@ const getStatusType = (status) => {
   const types = ['warning', 'success', 'primary', 'success', 'info', 'danger']
   //               0待付款    1已付款    2已发货    3已完成    4已取消   5已退货
   return types[status] || 'info'
-}
-
-const payMethods = ['微信支付', '支付宝', '云闪付']
-const payMethodText = (o) => {
-  if (o.payMethodText) return o.payMethodText
-  if (o.payMethod !== null && o.payMethod !== undefined) {
-    return payMethods[o.payMethod] || '未知'
-  }
-  return ''
 }
 
 const loadOrders = async () => {
@@ -199,16 +187,6 @@ h2 {
   font-size: 17px;
   color: var(--color-text-price);
   font-weight: 700;
-}
-
-.pay-method-tag {
-  margin-left: 12px;
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-accent);
-  padding: 3px 10px;
-  border-radius: var(--el-border-radius-round);
-  font-weight: 500;
 }
 
 .pagination {

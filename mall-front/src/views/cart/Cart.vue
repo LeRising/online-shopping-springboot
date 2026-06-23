@@ -45,35 +45,10 @@
       <div class="total">
         合计: <span class="total-price">¥{{ totalPrice }}</span>
       </div>
-      <el-button type="danger" size="large" :disabled="selectedCount === 0" @click="showPayDialog = true">
+      <el-button type="danger" size="large" :disabled="selectedCount === 0" @click="handleCheckout">
         结算 ({{ selectedCount }})
       </el-button>
     </div>
-
-    <!-- 付款方式选择弹窗 -->
-    <el-dialog v-model="showPayDialog" title="选择付款方式" width="420px" center>
-      <el-radio-group v-model="payMethod" class="pay-method-group">
-        <el-radio :value="0" class="pay-method-item" border>
-          <span class="pay-icon">💚</span>
-          <span class="pay-label">微信支付</span>
-        </el-radio>
-        <el-radio :value="1" class="pay-method-item" border>
-          <span class="pay-icon">💙</span>
-          <span class="pay-label">支付宝</span>
-        </el-radio>
-        <el-radio :value="2" class="pay-method-item" border>
-          <span class="pay-icon">❤️</span>
-          <span class="pay-label">云闪付</span>
-        </el-radio>
-      </el-radio-group>
-      <div class="pay-total">
-        应付金额：<span class="total-price">¥{{ totalPrice }}</span>
-      </div>
-      <template #footer>
-        <el-button @click="showPayDialog = false">取消</el-button>
-        <el-button type="danger" @click="handleCheckout">确认支付</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -86,8 +61,6 @@ import { getCartList, updateCartQuantity, deleteCartItem, createOrder, updateCar
 const router = useRouter()
 const cartList = ref([])
 const loading = ref(false)
-const showPayDialog = ref(false)
-const payMethod = ref(0) // 默认微信支付
 
 const totalPrice = computed(() => {
   return cartList.value
@@ -139,8 +112,7 @@ const handleCheckout = async () => {
     const selectedIds = cartList.value
       .filter(item => item.checked === 1)
       .map(item => item.id)
-    const res = await createOrder({ cartIds: selectedIds, payMethod: payMethod.value })
-    showPayDialog.value = false
+    const res = await createOrder({ cartIds: selectedIds })
     ElMessage.success('下单成功')
     router.push(`/order/${res.data.id}`)
   } catch (e) {
@@ -221,37 +193,5 @@ h2 {
   color: var(--color-text-price);
   font-weight: 800;
   letter-spacing: -0.02em;
-}
-
-.pay-method-group {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 100%;
-}
-
-.pay-method-item {
-  width: 100%;
-  padding: 14px 18px;
-  margin: 0 !important;
-  border-radius: var(--radius-md) !important;
-  transition: all .2s ease;
-}
-
-.pay-icon {
-  font-size: 26px;
-  margin-right: 10px;
-}
-
-.pay-label {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.pay-total {
-  text-align: center;
-  margin-top: 24px;
-  font-size: 16px;
-  color: var(--color-text-secondary);
 }
 </style>

@@ -113,7 +113,6 @@ CREATE TABLE `order_info` (
     `user_id`          BIGINT        NOT NULL COMMENT '用户ID',
     `total_amount`     DECIMAL(10,2) NOT NULL COMMENT '总金额',
     `status`           TINYINT       NOT NULL DEFAULT 0 COMMENT '状态：0待付款/1已付款/2已发货/3已完成/4已取消/5已退货',
-    `pay_method`       TINYINT       NOT NULL DEFAULT 0 COMMENT '支付方式：0微信/1支付宝/2云闪付',
     `address_snapshot` TEXT          DEFAULT NULL COMMENT '收货地址快照（JSON）',
     `pay_time`         DATETIME      DEFAULT NULL COMMENT '支付时间',
     `create_time`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
