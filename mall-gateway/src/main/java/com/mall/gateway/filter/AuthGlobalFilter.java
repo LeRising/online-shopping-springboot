@@ -66,6 +66,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             "/api/product/hot",        // 热门商品
             "/api/product/new",        // 新品推荐
             "/api/product/category/list", // 分类列表
+            "/api/product/*",          // 商品详情
             "/api/banner/list",        // 轮播图列表
             "/images/**",              // 静态资源
             "/feign/**"                // 服务内部调用
