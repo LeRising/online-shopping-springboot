@@ -3,7 +3,7 @@
     <!-- 轮播图 -->
     <el-carousel height="300px" class="banner" v-if="banners.length" v-loading="loadingBanners">
       <el-carousel-item v-for="banner in banners" :key="banner.id">
-        <img :src="banner.image" class="banner-img" />
+        <img :src="banner.image" class="banner-img" @click="handleBannerClick(banner)" />
       </el-carousel-item>
     </el-carousel>
 
@@ -76,11 +76,12 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getBannerList, getCategoryList, getHotProducts, getNewProducts, getProductList } from '../../api/product'
 import ProductCard from '../../components/ProductCard.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 const banners = ref([])
 const categories = ref([])
@@ -147,6 +148,12 @@ const loadProducts = async () => {
   total.value = res.data?.total || 0
   } finally {
     loadingProducts.value = false
+  }
+}
+
+const handleBannerClick = (banner) => {
+  if (banner.url) {
+    router.push(banner.url)
   }
 }
 
