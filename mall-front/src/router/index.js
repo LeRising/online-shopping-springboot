@@ -22,6 +22,7 @@ const routes = [
     children: [
       { path: '', name: 'AdminDashboard', component: () => import('../views/admin/Dashboard.vue') },
       { path: 'products', name: 'AdminProducts', component: () => import('../views/admin/ProductManage.vue') },
+      { path: 'categories', name: 'AdminCategories', component: () => import('../views/admin/CategoryManage.vue') },
       { path: 'orders', name: 'AdminOrders', component: () => import('../views/admin/OrderManage.vue') },
     ]
   }
