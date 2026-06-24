@@ -180,8 +180,8 @@ INSERT INTO `product` (`name`, `description`, `price`, `original_price`, `stock`
 ('小米14', '小米14 5G手机', 3999.00, 4299.00, 50, 3, '/images/xiaomi14.png', 1, 150),
 ('联想小新 Pro 16', '联想小新Pro16 R7-7840H', 5499.00, 6299.00, 45, 2, '/images/xiaoxin_pro16.png', 1, 180);
 
--- 轮播图
+-- 轮播图（展示热门商品前3名）
 INSERT INTO `banner` (`image`, `url`, `sort`) VALUES
-('/images/banner_1.png', '/product/1', 1),
-('/images/banner_2.png', '/product/2', 2),
-('/images/banner_3.png', '/product/3', 3);
+('/images/iphone15pro.png', '/product/1', 1),
+('/images/mate60pro.png', '/product/2', 2),
+('/images/ipad_air_m2.png', '/product/3', 3);
