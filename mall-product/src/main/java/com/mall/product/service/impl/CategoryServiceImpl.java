@@ -8,8 +8,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 商品分类服务实现类
+ *
+ * <p>实现商品分类的增删改查功能，使用静态变量缓存分类列表。</p>
+ *
+ * @author risinglee
+ * @since 1.0.0
+ */
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
@@ -19,6 +26,11 @@ public class CategoryServiceImpl implements CategoryService {
     /** 分类列表缓存 */
     private static List<Category> categoryCache;
 
+    /**
+     * 获取顶级分类列表（带缓存）
+     *
+     * @return 分类列表
+     */
     @Override
     public List<Category> list() {
         if (categoryCache != null) {
@@ -30,18 +42,33 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryCache;
     }
 
+    /**
+     * 新增分类
+     *
+     * @param category 分类信息
+     */
     @Override
     public void save(Category category) {
         categoryMapper.insert(category);
         categoryCache = null;
     }
 
+    /**
+     * 修改分类
+     *
+     * @param category 分类信息
+     */
     @Override
     public void update(Category category) {
         categoryMapper.updateById(category);
         categoryCache = null;
     }
 
+    /**
+     * 删除分类
+     *
+     * @param id 分类 ID
+     */
     @Override
     public void delete(Long id) {
         categoryMapper.deleteById(id);

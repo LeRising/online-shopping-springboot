@@ -7,14 +7,34 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
  * 登录拦截器
- * 通过 Authorization Header 传递 Token
+ *
+ * <p>从 Gateway 网关透传的 Header 中提取用户信息，存储到 {@link UserContext} 中。</p>
+ *
+ * <p>工作流程：</p>
+ * <ol>
+ *   <li>Gateway 验证 Token 成功后，将用户信息以 Header 形式传递给下游服务</li>
+ *   <li>本拦截器从 Header 中提取用户信息（X-User-Id、X-Username、X-User-Role）</li>
+ *   <li>将用户信息存储到 UserContext（ThreadLocal），供后续业务代码使用</li>
+ *   <li>请求结束后清理 UserContext，防止内存泄漏</li>
+ * </ol>
+ *
+ * @author risinglee
+ * @since 1.0.0
+ * @see UserContext
  */
 public class LoginInterceptor implements HandlerInterceptor {
 
+    /**
+     * 请求预处理：从 Header 中提取用户信息
+     *
+     * @param request  请求对象
+     * @param response 响应对象
+     * @param handler  处理器
+     * @return true-放行，false-拦截
+     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // OPTIONS 请求直接放行
-        // 浏览器的预检请求，询问服务器是否允许跨域
+        // OPTIONS 请求直接放行（浏览器跨域预检请求）
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
@@ -42,6 +62,14 @@ public class LoginInterceptor implements HandlerInterceptor {
         return false;
     }
 
+    /**
+     * 请求完成后清理用户上下文
+     *
+     * @param request  请求对象
+     * @param response 响应对象
+     * @param handler  处理器
+     * @param ex       异常（如果有）
+     */
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         UserContext.clear();

@@ -12,6 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * 分类控制器
+ *
+ * <p>提供前台商品分类的查询接口。</p>
+ *
+ * @author risinglee
+ * @since 1.0.0
+ */
 @Tag(name = "分类接口")
 @RestController
 @RequestMapping("/api/product/category")
@@ -20,6 +28,11 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    /**
+     * 获取顶级分类列表
+     *
+     * @return 分类列表（按排序值升序）
+     */
     @Operation(summary = "分类列表")
     @GetMapping("/list")
     public R<List<Category>> list() {

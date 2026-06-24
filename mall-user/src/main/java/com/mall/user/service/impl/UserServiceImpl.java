@@ -17,6 +17,21 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 用户服务实现类
+ *
+ * <p>实现用户注册、登录、信息管理等功能。</p>
+ *
+ * <p>核心业务逻辑：</p>
+ * <ul>
+ *   <li>密码使用 BCrypt 加密存储</li>
+ *   <li>Token 使用 UUID 生成，存储在内存中</li>
+ *   <li>用户信息使用 ConcurrentHashMap 缓存</li>
+ * </ul>
+ *
+ * @author risinglee
+ * @since 1.0.0
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -29,6 +44,11 @@ public class UserServiceImpl implements UserService {
     /** 用户信息缓存：userId -> UserDTO */
     private static final Map<Long, UserDTO> USER_CACHE = new ConcurrentHashMap<>();
 
+    /**
+     * 用户注册
+     *
+     * @param dto 注册请求
+     */
     @Override
     public void register(RegisterDTO dto) {
         Long count = userMapper.selectCount(
@@ -41,13 +61,17 @@ public class UserServiceImpl implements UserService {
         user.setUsername(dto.getUsername());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setNickname(dto.getNickname() != null ? dto.getNickname() : dto.getUsername());
-        user.setEmail(dto.getEmail());
-        user.setPhone(dto.getPhone());
         user.setRole(0);
 
         userMapper.insert(user);
     }
 
+    /**
+     * 用户登录
+     *
+     * @param dto 登录请求
+     * @return 登录结果（包含 token、用户信息）
+     */
     @Override
     public Map<String, Object> login(LoginDTO dto) {
         User user = userMapper.selectOne(
@@ -77,11 +101,22 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
+    /**
+     * 用户登出
+     *
+     * @param token 用户 Token
+     */
     @Override
     public void logout(String token) {
         TOKEN_STORE.remove(token);
     }
 
+    /**
+     * 获取用户信息（带缓存）
+     *
+     * @param userId 用户 ID
+     * @return 用户信息
+     */
     @Override
     public UserDTO getUserInfo(Long userId) {
         // 先查缓存
@@ -101,6 +136,12 @@ public class UserServiceImpl implements UserService {
         return userDTO;
     }
 
+    /**
+     * 更新用户信息
+     *
+     * @param userId 用户 ID
+     * @param dto    用户信息（只更新非空字段）
+     */
     @Override
     public void updateUserInfo(Long userId, UserDTO dto) {
         User user = userMapper.selectById(userId);
@@ -117,16 +158,32 @@ public class UserServiceImpl implements UserService {
         USER_CACHE.remove(userId);
     }
 
+    /**
+     * 统计用户总数
+     *
+     * @return 用户数量
+     */
     @Override
     public long count() {
         return userMapper.selectCount(null);
     }
 
-    /** 验证 Token 并返回 userId */
+    /**
+     * 验证 Token 并返回 userId
+     *
+     * @param token 用户 Token
+     * @return 用户 ID，无效返回 null
+     */
     public Long validateToken(String token) {
         return TOKEN_STORE.get(token);
     }
 
+    /**
+     * 将用户实体转换为 DTO
+     *
+     * @param user 用户实体
+     * @return 用户 DTO
+     */
     private UserDTO toUserDTO(User user) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());

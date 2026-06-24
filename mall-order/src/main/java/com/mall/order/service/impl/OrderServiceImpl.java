@@ -28,6 +28,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 订单服务实现类
+ *
+ * <p>实现订单的完整生命周期管理，包括创建、支付、发货、确认、退货等操作。</p>
+ *
+ * <p>核心业务逻辑：</p>
+ * <ul>
+ *   <li>创建订单时扣减库存，取消/退货时恢复库存</li>
+ *   <li>下单时保存收货地址快照</li>
+ *   <li>订单状态流转：待付款→已付款→已发货→已完成</li>
+ * </ul>
+ *
+ * @author risinglee
+ * @since 1.0.0
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -39,9 +54,27 @@ public class OrderServiceImpl implements OrderService {
     private final ProductFeignClient productFeignClient;
     private final UserFeignClient userFeignClient;
 
+    /**
+     * 创建订单
+     *
+     * <p>从购物车中选中的商品创建订单，包含以下步骤：</p>
+     * <ol>
+     *   <li>获取购物车中的商品</li>
+     *   <li>通过 Feign 获取商品信息</li>
+     *   <li>扣减库存</li>
+     *   <li>获取收货地址快照</li>
+     *   <li>创建订单和订单项</li>
+     *   <li>清空已下单的购物车项</li>
+     * </ol>
+     *
+     * @param userId 用户 ID
+     * @param dto    创建订单请求
+     * @return 订单详情
+     */
     @Override
     @Transactional
     public OrderDTO createOrder(Long userId, CreateOrderDTO dto) {
+        // 1. 获取购物车中的商品
         LambdaQueryWrapper<Cart> cartWrapper = new LambdaQueryWrapper<>();
         cartWrapper.eq(Cart::getUserId, userId);
         if (dto.getCartIds() != null && !dto.getCartIds().isEmpty()) {
@@ -55,6 +88,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
 
+        // 2. 通过 Feign 获取商品信息
         for (Cart cart : cartList) {
             R<ProductSimpleDTO> productResult;
             try {
@@ -79,6 +113,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(cart.getQuantity())));
         }
 
+        // 3. 扣减库存
         for (OrderItem item : orderItems) {
             try {
                 R<Void> deductResult = productFeignClient.deductStock(item.getProductId(), item.getQuantity());
@@ -93,7 +128,7 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        // 获取收货地址快照
+        // 4. 获取收货地址快照
         String addressSnapshot = "{}";
         try {
             Map<String, Object> addrData = null;
@@ -122,6 +157,7 @@ public class OrderServiceImpl implements OrderService {
             log.warn("获取收货地址失败: {}", e.getMessage());
         }
 
+        // 5. 创建订单和订单项
         OrderInfo order = new OrderInfo();
         order.setOrderNo(IdUtil.getSnowflakeNextIdStr());
         order.setUserId(userId);
@@ -135,6 +171,7 @@ public class OrderServiceImpl implements OrderService {
             orderItemMapper.insert(item);
         }
 
+        // 6. 清空已下单的购物车项
         for (Cart cart : cartList) {
             cartMapper.deleteById(cart.getId());
         }
@@ -142,6 +179,15 @@ public class OrderServiceImpl implements OrderService {
         return getOrderDetail(userId, order.getId());
     }
 
+    /**
+     * 查询用户的订单列表
+     *
+     * @param userId 用户 ID
+     * @param status 订单状态（可选）
+     * @param page   页码
+     * @param size   每页大小
+     * @return 分页订单列表
+     */
     @Override
     public PageResult<OrderDTO> listOrders(Long userId, Integer status, int page, int size) {
         LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<>();
@@ -154,6 +200,13 @@ public class OrderServiceImpl implements OrderService {
         return new PageResult<>(records, pageResult.getTotal(), page, size);
     }
 
+    /**
+     * 获取订单详情
+     *
+     * @param userId  用户 ID
+     * @param orderId 订单 ID
+     * @return 订单详情
+     */
     @Override
     public OrderDTO getOrderDetail(Long userId, Long orderId) {
         OrderInfo order = orderInfoMapper.selectById(orderId);
@@ -163,6 +216,14 @@ public class OrderServiceImpl implements OrderService {
         return toOrderDTO(order);
     }
 
+    /**
+     * 取消订单
+     *
+     * <p>只能取消待付款状态的订单，取消后恢复库存。</p>
+     *
+     * @param userId  用户 ID
+     * @param orderId 订单 ID
+     */
     @Override
     @Transactional
     public void cancelOrder(Long userId, Long orderId) {
@@ -176,6 +237,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(4);
         orderInfoMapper.updateById(order);
 
+        // 恢复库存
         List<OrderItem> items = orderItemMapper.selectList(
                 new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId));
         for (OrderItem item : items) {
@@ -187,6 +249,14 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    /**
+     * 模拟支付订单
+     *
+     * <p>将订单状态从待付款改为已付款，记录支付时间。</p>
+     *
+     * @param userId  用户 ID
+     * @param orderId 订单 ID
+     */
     @Override
     @Transactional
     public void payOrder(Long userId, Long orderId) {
@@ -202,6 +272,14 @@ public class OrderServiceImpl implements OrderService {
         orderInfoMapper.updateById(order);
     }
 
+    /**
+     * 确认收货
+     *
+     * <p>将订单状态从已发货改为已完成。</p>
+     *
+     * @param userId  用户 ID
+     * @param orderId 订单 ID
+     */
     @Override
     @Transactional
     public void confirmOrder(Long userId, Long orderId) {
@@ -216,6 +294,14 @@ public class OrderServiceImpl implements OrderService {
         orderInfoMapper.updateById(order);
     }
 
+    /**
+     * 申请退货
+     *
+     * <p>只能对已付款或已发货的订单申请退货，退货后恢复库存。</p>
+     *
+     * @param userId  用户 ID
+     * @param orderId 订单 ID
+     */
     @Override
     @Transactional
     public void applyReturn(Long userId, Long orderId) {
@@ -229,6 +315,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(5);
         orderInfoMapper.updateById(order);
 
+        // 恢复库存
         List<OrderItem> items = orderItemMapper.selectList(
                 new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId));
         for (OrderItem item : items) {
@@ -240,6 +327,14 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    /**
+     * 查询所有订单（管理员）
+     *
+     * @param status 订单状态（可选）
+     * @param page   页码
+     * @param size   每页大小
+     * @return 分页订单列表
+     */
     @Override
     public PageResult<OrderDTO> listAllOrders(Integer status, int page, int size) {
         LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<>();
@@ -251,6 +346,13 @@ public class OrderServiceImpl implements OrderService {
         return new PageResult<>(records, pageResult.getTotal(), page, size);
     }
 
+    /**
+     * 订单发货（管理员）
+     *
+     * <p>将订单状态从已付款改为已发货。</p>
+     *
+     * @param orderId 订单 ID
+     */
     @Override
     @Transactional
     public void shipOrder(Long orderId) {
@@ -261,6 +363,12 @@ public class OrderServiceImpl implements OrderService {
         orderInfoMapper.updateById(order);
     }
 
+    /**
+     * 将订单实体转换为 DTO
+     *
+     * @param order 订单实体
+     * @return 订单 DTO
+     */
     private OrderDTO toOrderDTO(OrderInfo order) {
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getId());

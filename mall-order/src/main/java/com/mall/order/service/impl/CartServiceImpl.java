@@ -15,6 +15,14 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 购物车服务实现类
+ *
+ * <p>实现购物车的增删改查功能，通过 Feign 调用商品服务获取商品信息。</p>
+ *
+ * @author risinglee
+ * @since 1.0.0
+ */
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
@@ -22,6 +30,14 @@ public class CartServiceImpl implements CartService {
     private final CartMapper cartMapper;
     private final ProductFeignClient productFeignClient;
 
+    /**
+     * 获取用户的购物车列表
+     *
+     * <p>查询用户的购物车项，并通过 Feign 调用商品服务获取商品信息。</p>
+     *
+     * @param userId 用户 ID
+     * @return 购物车列表（包含商品信息）
+     */
     @Override
     public List<CartDTO> listCart(Long userId) {
         List<Cart> cartList = cartMapper.selectList(
@@ -53,6 +69,15 @@ public class CartServiceImpl implements CartService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 添加商品到购物车
+     *
+     * <p>如果商品已存在，则增加数量；否则新增购物车项。</p>
+     *
+     * @param userId    用户 ID
+     * @param productId 商品 ID
+     * @param quantity  数量
+     */
     @Override
     public void addToCart(Long userId, Long productId, int quantity) {
         Cart existing = cartMapper.selectOne(
@@ -72,6 +97,15 @@ public class CartServiceImpl implements CartService {
         }
     }
 
+    /**
+     * 修改购物车项数量
+     *
+     * <p>数量小于等于 0 时删除该项。</p>
+     *
+     * @param userId   用户 ID
+     * @param cartId   购物车项 ID
+     * @param quantity 新数量
+     */
     @Override
     public void updateQuantity(Long userId, Long cartId, int quantity) {
         Cart cart = cartMapper.selectById(cartId);
@@ -86,6 +120,12 @@ public class CartServiceImpl implements CartService {
         }
     }
 
+    /**
+     * 删除购物车项
+     *
+     * @param userId 用户 ID
+     * @param cartId 购物车项 ID
+     */
     @Override
     public void deleteCartItem(Long userId, Long cartId) {
         Cart cart = cartMapper.selectById(cartId);
@@ -95,6 +135,13 @@ public class CartServiceImpl implements CartService {
         cartMapper.deleteById(cartId);
     }
 
+    /**
+     * 更新购物车项选中状态
+     *
+     * @param userId  用户 ID
+     * @param cartId  购物车项 ID
+     * @param checked 选中状态：0=未选中，1=选中
+     */
     @Override
     public void updateChecked(Long userId, Long cartId, int checked) {
         Cart cart = cartMapper.selectById(cartId);

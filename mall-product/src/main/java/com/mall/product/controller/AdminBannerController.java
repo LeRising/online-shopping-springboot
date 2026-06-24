@@ -11,6 +11,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * 管理员轮播图控制器
+ *
+ * <p>提供管理员的轮播图管理接口，包括：</p>
+ * <ul>
+ *   <li>查看轮播图列表</li>
+ *   <li>新增轮播图</li>
+ *   <li>修改轮播图</li>
+ *   <li>删除轮播图</li>
+ * </ul>
+ *
+ * <p>所有接口需要管理员权限（@RequireAdmin 注解）。</p>
+ *
+ * @author risinglee
+ * @since 1.0.0
+ */
 @Tag(name = "后台轮播图管理接口")
 @RestController
 @RequestMapping("/api/admin/banner")
@@ -19,6 +35,11 @@ public class AdminBannerController {
 
     private final BannerService bannerService;
 
+    /**
+     * 获取轮播图列表
+     *
+     * @return 轮播图列表
+     */
     @RequireAdmin
     @Operation(summary = "轮播图列表")
     @GetMapping("/list")
@@ -26,6 +47,12 @@ public class AdminBannerController {
         return R.ok(bannerService.list());
     }
 
+    /**
+     * 新增轮播图
+     *
+     * @param banner 轮播图信息
+     * @return 操作结果
+     */
     @RequireAdmin
     @Operation(summary = "新增轮播图")
     @PostMapping
@@ -34,6 +61,12 @@ public class AdminBannerController {
         return R.ok();
     }
 
+    /**
+     * 修改轮播图
+     *
+     * @param banner 轮播图信息
+     * @return 操作结果
+     */
     @RequireAdmin
     @Operation(summary = "修改轮播图")
     @PutMapping
@@ -42,6 +75,12 @@ public class AdminBannerController {
         return R.ok();
     }
 
+    /**
+     * 删除轮播图
+     *
+     * @param id 轮播图 ID
+     * @return 操作结果
+     */
     @RequireAdmin
     @Operation(summary = "删除轮播图")
     @DeleteMapping("/{id}")

@@ -8,6 +8,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Web MVC 配置类
+ *
+ * <p>配置拦截器和跨域访问策略。</p>
+ *
+ * <p>拦截器配置：</p>
+ * <ul>
+ *   <li>登录拦截器 - 拦截需要登录的路径，排除公开接口</li>
+ *   <li>管理员拦截器 - 拦截 /api/admin/** 路径，校验管理员权限</li>
+ * </ul>
+ *
+ * @author risinglee
+ * @since 1.0.0
+ */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
@@ -18,7 +32,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/api/admin/**"
     );
 
-    /** 排除的路径 */
+    /** 排除的路径（公开接口和文档） */
     private static final List<String> EXCLUDE_PATHS = Arrays.asList(
             "/api/user/register", "/api/user/login", "/api/user/validate",
             "/api/product/list", "/api/product/hot", "/api/product/new",
@@ -27,6 +41,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/doc.html", "/webjars/**", "/v3/api-docs/**"
     );
 
+    /**
+     * 注册拦截器
+     *
+     * @param registry 拦截器注册器
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 登录拦截器
@@ -39,6 +58,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/admin/**");
     }
 
+    /**
+     * 配置跨域访问
+     *
+     * @param registry 跨域配置注册器
+     */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
