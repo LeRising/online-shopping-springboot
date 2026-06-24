@@ -100,11 +100,9 @@ public class CartServiceImpl implements CartService {
     /**
      * 修改购物车项数量
      *
-     * <p>数量小于等于 0 时删除该项。</p>
-     *
      * @param userId   用户 ID
      * @param cartId   购物车项 ID
-     * @param quantity 新数量
+     * @param quantity 新数量（必须大于 0）
      */
     @Override
     public void updateQuantity(Long userId, Long cartId, int quantity) {
@@ -113,11 +111,10 @@ public class CartServiceImpl implements CartService {
             throw new BusinessException("购物车项不存在");
         }
         if (quantity <= 0) {
-            cartMapper.deleteById(cartId);
-        } else {
-            cart.setQuantity(quantity);
-            cartMapper.updateById(cart);
+            throw new BusinessException("数量必须大于 0");
         }
+        cart.setQuantity(quantity);
+        cartMapper.updateById(cart);
     }
 
     /**
