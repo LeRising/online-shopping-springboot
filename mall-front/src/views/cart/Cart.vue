@@ -57,6 +57,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCartList, updateCartQuantity, deleteCartItem, createOrder, updateCartCheck } from '../../api/order'
+import { getAddressList } from '../../api/user'
 
 const router = useRouter()
 const cartList = ref([])
@@ -109,6 +110,26 @@ const handleDelete = async (row) => {
 
 const handleCheckout = async () => {
   try {
+    // 检查用户是否有收货地址
+    const addressRes = await getAddressList()
+    const addresses = addressRes.data || []
+
+    if (addresses.length === 0) {
+      await ElMessageBox.confirm(
+        '您还没有设置收货地址，请先添加收货地址后再结算。',
+        '提示',
+        {
+          confirmButtonText: '去添加地址',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+      // 跳转到个人中心的地址管理页面
+      router.push('/user')
+      return
+    }
+
+    // 有收货地址，继续创建订单
     const selectedIds = cartList.value
       .filter(item => item.checked === 1)
       .map(item => item.id)
@@ -116,7 +137,7 @@ const handleCheckout = async () => {
     ElMessage.success('下单成功')
     router.push(`/order/${res.data.id}`)
   } catch (e) {
-    // handled
+    // 用户取消或请求失败
   }
 }
 
