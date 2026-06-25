@@ -5,25 +5,28 @@ spring:
   application:
     name: mall-gateway
   cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
     gateway:
       routes:
         - id: mall-user
-          uri: http://localhost:8081
+          uri: lb://mall-user
           predicates:
             - Path=/api/user/**,/api/admin/user/**,/feign/user/**
 
         - id: mall-images
-          uri: http://localhost:8081
+          uri: lb://mall-user
           predicates:
             - Path=/images/**
 
         - id: mall-product
-          uri: http://localhost:8082
+          uri: lb://mall-product
           predicates:
             - Path=/api/product/**,/api/banner/**,/api/admin/product/**,/api/admin/category/**,/api/admin/banner/**,/feign/product/**
 
         - id: mall-order
-          uri: http://localhost:8083
+          uri: lb://mall-order
           predicates:
             - Path=/api/cart/**,/api/order/**,/api/admin/order/**,/api/admin/dashboard/**
 

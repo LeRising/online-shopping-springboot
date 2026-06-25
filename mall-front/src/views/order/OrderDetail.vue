@@ -1,5 +1,6 @@
 <template>
   <div class="order-detail" v-if="order" v-loading="loading">
+    <!--订单详情-->
     <h2>订单详情</h2>
     <el-descriptions :column="2" border>
       <el-descriptions-item label="订单号">{{ order.orderNo }}</el-descriptions-item>
@@ -18,22 +19,26 @@
     <el-descriptions :column="1" border v-if="address">
       <el-descriptions-item label="收货人">{{ address.name }}</el-descriptions-item>
       <el-descriptions-item label="联系电话">{{ address.phone }}</el-descriptions-item>
-      <el-descriptions-item label="收货地址">{{ address.province }}{{ address.city }}{{ address.district }}{{ address.detail }}</el-descriptions-item>
+      <el-descriptions-item label="收货地址">{{ address.province }}{{ address.city }}{{
+          address.district
+        }}{{ address.detail }}
+      </el-descriptions-item>
     </el-descriptions>
-    <el-empty v-else description="暂无收货地址信息" />
+    <el-empty v-else description="暂无收货地址信息"/>
 
+    <!--商品明细-->
     <h3 style="margin: 20px 0 12px;">商品明细</h3>
     <el-table :data="order.items">
       <el-table-column label="商品">
         <template #default="{ row }">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <img :src="row.productImage" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />
+            <img :src="row.productImage" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"/>
             <span>{{ row.productName }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="单价" prop="price" width="120" />
-      <el-table-column label="数量" prop="quantity" width="100" />
+      <el-table-column label="单价" prop="price" width="120"/>
+      <el-table-column label="数量" prop="quantity" width="100"/>
       <el-table-column label="小计" width="120">
         <template #default="{ row }">
           <span style="color: #f56c6c;">¥{{ (row.price * row.quantity).toFixed(2) }}</span>
@@ -41,6 +46,7 @@
       </el-table-column>
     </el-table>
 
+    <!--返回订单列表按钮-->
     <div style="text-align: center; margin-top: 20px;">
       <el-button @click="router.push('/order')">返回订单列表</el-button>
     </div>
@@ -48,9 +54,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { getOrderDetail } from '../../api/order'
+import {ref, computed, onMounted} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {getOrderDetail} from '../../api/order'
 
 const route = useRoute()
 const router = useRouter()

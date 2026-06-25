@@ -3,6 +3,7 @@ package com.mall.user;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.ComponentScan;
  * @since 1.0.0
  */
 @SpringBootApplication
+@EnableDiscoveryClient
 @ComponentScan(basePackages = {"com.mall.user", "com.mall.common"})
 @MapperScan("com.mall.user.mapper")
 public class UserApplication {

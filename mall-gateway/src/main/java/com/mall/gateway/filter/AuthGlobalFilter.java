@@ -99,9 +99,9 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
         final String token = authHeader.substring(7);
 
-        // 调用 mall-user 服务验证 Token
+        // 调用 mall-user 服务验证 Token（通过服务发现）
         return webClient.get()
-                .uri("http://localhost:8081/api/user/validate")
+                .uri("http://mall-user/api/user/validate")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(String.class)

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * @author risinglee
  * @since 1.0.0
  */
-@FeignClient(name = "mall-product", url = "http://localhost:8082")
+@FeignClient(name = "mall-product")
 public interface ProductFeignClient {
 
     /**

@@ -20,7 +20,7 @@ import java.util.Map;
  * @author risinglee
  * @since 1.0.0
  */
-@FeignClient(name = "mall-user", url = "http://localhost:8081")
+@FeignClient(name = "mall-user")
 public interface UserFeignClient {
 
     /**
