@@ -19,8 +19,8 @@
           <span>分类管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/banners">
-          <el-icon><Picture /></el-icon>
-          <span>轮播图管理</span>
+          <el-icon><Bell /></el-icon>
+          <span>公告管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/orders">
           <el-icon><List /></el-icon>

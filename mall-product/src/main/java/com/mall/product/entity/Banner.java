@@ -6,9 +6,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 轮播图实体类
+ * 公告实体类
  *
- * <p>对应数据库 banner 表，存储首页轮播图信息。</p>
+ * <p>对应数据库 banner 表，存储首页轮播公告信息。</p>
  *
  * @author risinglee
  * @since 1.0.0
@@ -18,11 +18,8 @@ import lombok.EqualsAndHashCode;
 @TableName("banner")
 public class Banner extends BaseEntity {
 
-    /** 轮播图图片 URL */
-    private String image;
-
-    /** 点击跳转链接 */
-    private String url;
+    /** 公告内容 */
+    private String content;
 
     /** 排序值（越小越靠前） */
     private Integer sort;

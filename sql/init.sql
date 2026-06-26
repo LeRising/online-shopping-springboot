@@ -144,14 +144,13 @@ CREATE TABLE `order_item` (
 -- 8. 轮播图表
 -- -----------------------------------------------------------
 CREATE TABLE `banner` (
-    `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '轮播图ID',
-    `image`       VARCHAR(500) NOT NULL COMMENT '图片URL',
-    `url`         VARCHAR(500) DEFAULT NULL COMMENT '跳转链接',
+    `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '公告ID',
+    `content`     VARCHAR(500) NOT NULL DEFAULT '' COMMENT '公告内容',
     `sort`        INT          NOT NULL DEFAULT 0 COMMENT '排序',
     `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮播图表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='公告表';
 
 -- -----------------------------------------------------------
 -- 初始数据
@@ -170,5 +169,11 @@ INSERT INTO `category` (`id`, `name`, `parent_id`, `sort`) VALUES
 (1, '手机数码', 0, 1),
 (2, '电脑办公', 0, 2),
 (3, '家用电器', 0, 3);
+
+-- 公告
+INSERT INTO `banner` (`content`, `sort`) VALUES
+('🎉 全场手机数码类商品限时 8 折优惠，快来抢购！', 1),
+('📦 新用户注册即送 50 元优惠券，数量有限先到先得！', 2),
+('🚚 全场满 299 元包邮，支持全国配送', 3);
 
 

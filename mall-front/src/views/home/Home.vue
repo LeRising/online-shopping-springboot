@@ -1,9 +1,12 @@
 <template>
   <div class="home">
-    <!-- 轮播图 -->
-    <el-carousel height="300px" class="banner" v-if="banners.length" v-loading="loadingBanners">
+    <!-- 公告轮播 -->
+    <el-carousel v-if="banners.length" class="notice-bar" :interval="4000" indicator-position="none">
       <el-carousel-item v-for="banner in banners" :key="banner.id">
-        <img :src="banner.image" class="banner-img" @click="handleBannerClick(banner)" />
+        <div class="notice-content">
+          <el-icon><Bell /></el-icon>
+          <span>{{ banner.content }}</span>
+        </div>
       </el-carousel-item>
     </el-carousel>
 
@@ -151,12 +154,6 @@ const loadProducts = async () => {
   }
 }
 
-const handleBannerClick = (banner) => {
-  if (banner.url) {
-    router.push(banner.url)
-  }
-}
-
 const selectCategory = (catId) => {
   selectedCategory.value = catId
   browsing.value = true
@@ -188,40 +185,33 @@ onMounted(() => {
   padding-bottom: 20px;
 }
 
-/* ---- Banner / Carousel ---- */
-.banner {
+/* ---- Notice Bar ---- */
+.notice-bar {
+  margin-bottom: 24px;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  margin-bottom: 28px;
-  box-shadow: var(--shadow-card);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.banner :deep(.el-carousel__container) {
-  height: 200px;
+.notice-bar :deep(.el-carousel__container) {
+  height: 48px;
 }
 
-.banner :deep(.el-carousel__indicators) {
-  bottom: 12px;
-}
-.banner :deep(.el-carousel__indicator) {
-  padding: 4px;
-}
-.banner :deep(.el-carousel__button) {
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  opacity: .4;
-  background: #fff;
-}
-.banner :deep(.el-carousel__indicator.is-active button) {
-  width: 24px;
-  opacity: 1;
-}
-
-.banner-img {
-  width: 100%;
+.notice-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   height: 100%;
-  object-fit: cover;
+  padding: 0 24px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.notice-content .el-icon {
+  font-size: 18px;
+  flex-shrink: 0;
 }
 
 /* ---- Section ---- */
