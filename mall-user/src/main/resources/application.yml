@@ -15,9 +15,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   web:
     resources:
-      static-locations: file:D:/CodeWorkPlace/IdeaCode/online-shopping-springboot/images/
-  mvc:
-    static-path-pattern: /images/**
+      static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:D:/CodeWorkPlace/IdeaCode/online-shopping-springboot/images/
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml

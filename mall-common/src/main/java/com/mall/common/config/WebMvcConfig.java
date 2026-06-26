@@ -1,8 +1,10 @@
 package com.mall.common.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
@@ -41,6 +43,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/doc.html", "/webjars/**", "/v3/api-docs/**"
     );
 
+    /** 图片存储路径 */
+    @Value("${file.upload.path:D:/CodeWorkPlace/IdeaCode/online-shopping-springboot/images/}")
+    private String imageStoragePath;
+
     /**
      * 注册拦截器
      *
@@ -56,6 +62,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // 管理员权限拦截器（在登录拦截器之后执行）
         registry.addInterceptor(new AdminInterceptor())
                 .addPathPatterns("/api/admin/**");
+    }
+
+    /**
+     * 配置静态资源映射
+     *
+     * @param registry 资源处理器注册器
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 将 /images/** 路径映射到本地文件目录
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("file:" + imageStoragePath);
     }
 
     /**
