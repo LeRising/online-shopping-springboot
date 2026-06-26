@@ -39,6 +39,10 @@ spring:
             allowCredentials: true
             maxAge: 3600
 
+spring:
+  jmx:
+    enabled: false
+
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
