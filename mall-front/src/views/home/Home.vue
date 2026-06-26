@@ -196,8 +196,12 @@ onMounted(() => {
   box-shadow: var(--shadow-card);
 }
 
+.banner :deep(.el-carousel__container) {
+  height: 200px;
+}
+
 .banner :deep(.el-carousel__indicators) {
-  bottom: 16px;
+  bottom: 12px;
 }
 .banner :deep(.el-carousel__indicator) {
   padding: 4px;
@@ -216,9 +220,8 @@ onMounted(() => {
 
 .banner-img {
   width: 100%;
-  height: 320px;
-  object-fit: contain;
-  background-color: #f5f5f5;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ---- Section ---- */

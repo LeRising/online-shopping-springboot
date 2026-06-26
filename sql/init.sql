@@ -171,17 +171,4 @@ INSERT INTO `category` (`id`, `name`, `parent_id`, `sort`) VALUES
 (2, '电脑办公', 0, 2),
 (3, '家用电器', 0, 3);
 
--- 商品
-INSERT INTO `product` (`name`, `description`, `price`, `original_price`, `stock`, `category_id`, `image`, `status`, `sales`) VALUES
-('iPhone 15 Pro', 'Apple iPhone 15 Pro 256GB', 8999.00, 9999.00, 100, 1, '/images/iphone15pro.png', 1, 520),
-('华为 Mate 60', '华为 Mate 60 Pro 512GB', 6999.00, 7999.00, 80, 1, '/images/mate60pro.png', 1, 480),
-('iPad Air', 'Apple iPad Air M2 256GB', 4799.00, 5499.00, 60, 1, '/images/ipad_air_m2.png', 1, 300),
-('MacBook Pro 14', 'Apple MacBook Pro 14英寸 M3', 14999.00, 16999.00, 30, 2, '/images/macbook_pro14.png', 1, 200),
-('小米14', '小米14 5G手机', 3999.00, 4299.00, 50, 3, '/images/xiaomi14.png', 1, 150),
-('联想小新 Pro 16', '联想小新Pro16 R7-7840H', 5499.00, 6299.00, 45, 2, '/images/xiaoxin_pro16.png', 1, 180);
 
--- 轮播图（展示热门商品前3名）
-INSERT INTO `banner` (`image`, `url`, `sort`) VALUES
-('/images/iphone15pro.png', '/product/1', 1),
-('/images/mate60pro.png', '/product/2', 2),
-('/images/ipad_air_m2.png', '/product/3', 3);
