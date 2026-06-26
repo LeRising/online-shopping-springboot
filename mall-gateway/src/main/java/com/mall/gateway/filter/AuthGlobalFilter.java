@@ -2,7 +2,7 @@ package com.mall.gateway.filter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.reactive.ReactorLoadBalancerExchangeFilterFunction;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -53,15 +53,20 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
     /** 路径匹配器，支持 Ant 风格的通配符 */
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    /** WebClient 用于调用 mall-user 服务验证 Token */
-    private final WebClient webClient = WebClient.create();
-
     /** JSON 解析器 */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /** mall-user 服务地址，从配置文件读取，默认为 localhost:8081 */
-    @Value("${mall.user.service.url:http://localhost:8081}")
-    private String userServiceUrl;
+    /** 支持负载均衡的 WebClient */
+    private final WebClient webClient;
+
+    /**
+     * 构造函数，注入响应式负载均衡函数
+     */
+    public AuthGlobalFilter(ReactorLoadBalancerExchangeFilterFunction loadBalancerFunction) {
+        this.webClient = WebClient.builder()
+                .filter(loadBalancerFunction)
+                .build();
+    }
 
     /** 白名单路径列表（不需要认证的接口） */
     private static final List<String> WHITELIST = Arrays.asList(
@@ -104,9 +109,9 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
         final String token = authHeader.substring(7);
 
-        // 调用 mall-user 服务验证 Token
+        // 通过服务发现调用 mall-user 服务验证 Token
         return webClient.get()
-                .uri(userServiceUrl + "/api/user/validate")
+                .uri("http://mall-user/api/user/validate")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(String.class)
