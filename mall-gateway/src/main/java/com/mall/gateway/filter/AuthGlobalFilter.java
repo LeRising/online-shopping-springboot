@@ -2,6 +2,7 @@ package com.mall.gateway.filter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -58,6 +59,10 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
     /** JSON 解析器 */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /** mall-user 服务地址，从配置文件读取，默认为 localhost:8081 */
+    @Value("${mall.user.service.url:http://localhost:8081}")
+    private String userServiceUrl;
+
     /** 白名单路径列表（不需要认证的接口） */
     private static final List<String> WHITELIST = Arrays.asList(
             "/api/user/register",      // 用户注册
@@ -101,7 +106,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
         // 调用 mall-user 服务验证 Token
         return webClient.get()
-                .uri("http://localhost:8081/api/user/validate")
+                .uri(userServiceUrl + "/api/user/validate")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(String.class)
