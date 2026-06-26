@@ -26,9 +26,12 @@ request.interceptors.response.use(
     if (res.code !== 200) {
       ElMessage.error(res.msg || '请求失败')
       if (res.code === 401) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('userInfo')
-        router.push('/login')
+        // 只有在非登录页面时才跳转
+        if (router.currentRoute.value.path !== '/login') {
+          localStorage.removeItem('token')
+          localStorage.removeItem('userInfo')
+          router.push('/login')
+        }
       }
       return Promise.reject(new Error(res.msg))
     }
@@ -36,10 +39,13 @@ request.interceptors.response.use(
   },
   error => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('userInfo')
-      router.push('/login')
-      ElMessage.error('请先登录')
+      // 只有在非登录页面时才显示"请先登录"并跳转
+      if (router.currentRoute.value.path !== '/login') {
+        localStorage.removeItem('token')
+        localStorage.removeItem('userInfo')
+        router.push('/login')
+        ElMessage.error('请先登录')
+      }
     } else {
       ElMessage.error(error.message || '网络错误')
     }

@@ -89,7 +89,8 @@ const loadCartCount = async () => {
     const res = await getCartList()
     cartCount.value = res.data?.length || 0
   } catch (e) {
-    // ignore
+    // 购物车加载失败不影响页面显示
+    cartCount.value = 0
   }
 }
 

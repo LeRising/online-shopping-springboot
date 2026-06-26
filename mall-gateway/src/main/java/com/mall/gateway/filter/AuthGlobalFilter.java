@@ -2,6 +2,8 @@ package com.mall.gateway.filter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -17,6 +19,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -52,11 +55,18 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
     /** 路径匹配器，支持 Ant 风格的通配符 */
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    /** WebClient 用于调用 mall-user 服务验证 Token */
-    private final WebClient webClient = WebClient.create();
-
     /** JSON 解析器 */
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    /** 负载均衡客户端，用于获取服务实例地址 */
+    private final LoadBalancerClient loadBalancerClient;
+
+    /**
+     * 构造函数，注入 LoadBalancerClient
+     */
+    public AuthGlobalFilter(LoadBalancerClient loadBalancerClient) {
+        this.loadBalancerClient = loadBalancerClient;
+    }
 
     /** 白名单路径列表（不需要认证的接口） */
     private static final List<String> WHITELIST = Arrays.asList(
@@ -99,9 +109,16 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
         final String token = authHeader.substring(7);
 
-        // 调用 mall-user 服务验证 Token（通过服务发现）
-        return webClient.get()
-                .uri("http://mall-user/api/user/validate")
+        // 通过 LoadBalancer 获取 mall-user 服务实例
+        ServiceInstance serviceInstance = loadBalancerClient.choose("mall-user");
+        if (serviceInstance == null) {
+            return unauthorized(exchange);
+        }
+        String userServiceUrl = serviceInstance.getUri().toString();
+
+        // 调用 mall-user 服务验证 Token
+        return WebClient.create().get()
+                .uri(userServiceUrl + "/api/user/validate")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(String.class)
