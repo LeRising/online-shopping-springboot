@@ -15,7 +15,7 @@ spring:
         - id: mall-user
           uri: lb://mall-user
           predicates:
-            - Path=/api/user/**,/api/admin/user/**,/feign/user/**
+            - Path=/api/user/**,/api/admin/user/**,/feign/user/**,/api/file/**
 
         - id: mall-images
           uri: lb://mall-user
