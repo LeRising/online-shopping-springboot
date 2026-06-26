@@ -56,8 +56,8 @@
         <el-form-item label="库存">
           <el-input-number v-model="productForm.stock" :min="0" />
         </el-form-item>
-        <el-form-item label="图片URL">
-          <el-input v-model="productForm.image" />
+        <el-form-item label="商品图片">
+          <ImageUpload v-model="productForm.image" />
         </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="productForm.description" type="textarea" :rows="3" />
@@ -81,6 +81,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getProductList, addProduct, updateProduct, deleteProduct, getCategoryList } from '../../api/product'
+import ImageUpload from '../../components/ImageUpload.vue'
 
 const products = ref([])
 const categoryOptions = ref([])

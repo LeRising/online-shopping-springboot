@@ -26,11 +26,8 @@
     <!-- 新增/编辑对话框 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑轮播图' : '新增轮播图'" width="600px">
       <el-form :model="form" label-width="100px">
-        <el-form-item label="图片URL" required>
-          <el-input v-model="form.image" placeholder="请输入图片URL，如 /images/xxx.png" />
-        </el-form-item>
-        <el-form-item label="图片预览" v-if="form.image">
-          <img :src="form.image" class="preview-img" />
+        <el-form-item label="轮播图片" required>
+          <ImageUpload v-model="form.image" />
         </el-form-item>
         <el-form-item label="跳转链接">
           <el-input v-model="form.url" placeholder="请输入跳转链接，如 /product/1" />
@@ -51,6 +48,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAdminBannerList, addBanner, updateBanner, deleteBanner } from '../../api/admin'
+import ImageUpload from '../../components/ImageUpload.vue'
 
 const banners = ref([])
 const loading = ref(false)
