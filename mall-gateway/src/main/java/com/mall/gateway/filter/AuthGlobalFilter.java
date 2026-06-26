@@ -79,7 +79,11 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             "/api/product/*",          // 商品详情
             "/api/banner/list",        // 轮播图列表
             "/images/**",              // 静态资源
-            "/feign/**"                // 服务内部调用
+            "/feign/**",               // 服务内部调用
+            "/doc.html",              // Knife4j 文档
+            "/webjars/**",            // Knife4j 静态资源
+            "/v3/api-docs/**",        // OpenAPI 文档
+            "/swagger-resources/**"   // Swagger 资源
     );
 
     /**
