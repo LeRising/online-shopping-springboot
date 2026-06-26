@@ -1,13 +1,13 @@
 <template>
   <div class="image-upload">
-    <el-upload
-      :action="uploadUrl"
-      :show-file-list="false"
-      :on-success="handleSuccess"
-      :before-upload="beforeUpload"
-      :headers="uploadHeaders"
-      drag
-    >
+    <div class="upload-area" @click="triggerUpload" @drop.prevent="handleDrop" @dragover.prevent>
+      <input
+        ref="fileInput"
+        type="file"
+        accept="image/jpeg,image/png,image/gif"
+        style="display: none"
+        @change="handleFileChange"
+      />
       <div v-if="modelValue" class="preview-container">
         <img :src="getImageUrl(modelValue)" class="preview-img" />
         <div class="preview-overlay">
@@ -20,13 +20,15 @@
         <div class="upload-text">点击或拖拽上传图片</div>
         <div class="upload-hint">支持 jpg、png、gif 格式，最大 10MB</div>
       </div>
-    </el-upload>
+    </div>
+    <el-progress v-if="uploading" :percentage="uploadPercent" style="margin-top: 8px" />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import request from '../utils/request'
 
 const props = defineProps({
   modelValue: {
@@ -37,37 +39,71 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-// 上传地址
-const uploadUrl = '/api/file/upload'
+const fileInput = ref(null)
+const uploading = ref(false)
+const uploadPercent = ref(0)
 
-// 上传请求头（携带 Token）
-const uploadHeaders = computed(() => {
-  const token = localStorage.getItem('token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-})
-
-// 上传前校验
-const beforeUpload = (file) => {
-  const isImage = ['image/jpeg', 'image/png', 'image/gif'].includes(file.type)
-  if (!isImage) {
-    ElMessage.error('只能上传 jpg/png/gif 格式的图片')
-    return false
-  }
-  const isLt10M = file.size / 1024 / 1024 < 10
-  if (!isLt10M) {
-    ElMessage.error('图片大小不能超过 10MB')
-    return false
-  }
-  return true
+// 触发文件选择
+const triggerUpload = () => {
+  fileInput.value.click()
 }
 
-// 上传成功回调
-const handleSuccess = (response) => {
-  if (response.code === 200) {
-    emit('update:modelValue', response.data)
-    ElMessage.success('上传成功')
-  } else {
-    ElMessage.error(response.msg || '上传失败')
+// 处理文件选择
+const handleFileChange = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    uploadFile(file)
+  }
+  // 清空 input 以便重复选择同一文件
+  e.target.value = ''
+}
+
+// 处理拖拽
+const handleDrop = (e) => {
+  const file = e.dataTransfer.files[0]
+  if (file) {
+    uploadFile(file)
+  }
+}
+
+// 上传文件
+const uploadFile = async (file) => {
+  // 校验文件类型
+  if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+    ElMessage.error('只能上传 jpg/png/gif 格式的图片')
+    return
+  }
+  // 校验文件大小
+  if (file.size > 10 * 1024 * 1024) {
+    ElMessage.error('图片大小不能超过 10MB')
+    return
+  }
+
+  uploading.value = true
+  uploadPercent.value = 0
+
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await request.post('/file/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        uploadPercent.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+      }
+    })
+
+    if (res.code === 200) {
+      emit('update:modelValue', res.data)
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error(res.msg || '上传失败')
+    }
+  } catch (e) {
+    ElMessage.error('上传失败')
+  } finally {
+    uploading.value = false
+    uploadPercent.value = 0
   }
 }
 
@@ -84,19 +120,16 @@ const getImageUrl = (url) => {
   width: 100%;
 }
 
-.image-upload :deep(.el-upload) {
+.upload-area {
   width: 100%;
-}
-
-.image-upload :deep(.el-upload-dragger) {
-  width: 100%;
-  padding: 0;
   border: 2px dashed var(--el-border-color);
   border-radius: 8px;
+  cursor: pointer;
   transition: border-color 0.3s;
+  overflow: hidden;
 }
 
-.image-upload :deep(.el-upload-dragger:hover) {
+.upload-area:hover {
   border-color: var(--el-color-primary);
 }
 
@@ -105,7 +138,6 @@ const getImageUrl = (url) => {
   width: 100%;
   height: 200px;
   overflow: hidden;
-  border-radius: 6px;
 }
 
 .preview-img {
