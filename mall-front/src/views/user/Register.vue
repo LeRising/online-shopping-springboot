@@ -1,28 +1,45 @@
+<!--
+  用户注册页
+  包含用户名、密码、确认密码、昵称（选填）表单
+-->
 <template>
   <div class="login-page">
     <el-card class="login-card">
       <h2 class="title">用户注册</h2>
+
+      <!-- 注册表单 -->
       <el-form ref="formRef" :model="form" :rules="rules" label-width="0">
+        <!-- 用户名 -->
         <el-form-item prop="username">
           <el-input v-model="form.username" placeholder="用户名（3-20个字符）" prefix-icon="User" size="large" />
         </el-form-item>
+
+        <!-- 密码 -->
         <el-form-item prop="password">
           <el-input v-model="form.password" placeholder="密码（6-20个字符）" prefix-icon="Lock"
             type="password" show-password size="large" />
         </el-form-item>
+
+        <!-- 确认密码 -->
         <el-form-item prop="confirmPassword">
           <el-input v-model="form.confirmPassword" placeholder="确认密码" prefix-icon="Lock"
             type="password" show-password size="large" />
         </el-form-item>
+
+        <!-- 昵称（选填） -->
         <el-form-item>
           <el-input v-model="form.nickname" placeholder="昵称（选填）" size="large" />
         </el-form-item>
+
+        <!-- 注册按钮 -->
         <el-form-item>
           <el-button type="primary" size="large" style="width: 100%" :loading="loading" @click="handleRegister">
             注册
           </el-button>
         </el-form-item>
       </el-form>
+
+      <!-- 登录链接 -->
       <div class="footer-link">
         已有账号？<router-link to="/login">立即登录</router-link>
       </div>
@@ -37,9 +54,10 @@ import { ElMessage } from 'element-plus'
 import { register } from '../../api/user'
 
 const router = useRouter()
-const formRef = ref()
-const loading = ref(false)
+const formRef = ref()          // 表单引用
+const loading = ref(false)     // 按钮加载状态
 
+// 表单数据
 const form = reactive({
   username: '',
   password: '',
@@ -47,6 +65,7 @@ const form = reactive({
   nickname: ''
 })
 
+/** 自定义验证：确认密码一致性 */
 const validateConfirm = (rule, value, callback) => {
   if (value !== form.password) {
     callback(new Error('两次密码不一致'))
@@ -55,6 +74,7 @@ const validateConfirm = (rule, value, callback) => {
   }
 }
 
+// 表单验证规则
 const rules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -70,8 +90,9 @@ const rules = {
   ]
 }
 
+/** 执行注册 */
 const handleRegister = async () => {
-  await formRef.value.validate()
+  await formRef.value.validate()    // 触发表单验证
   loading.value = true
   try {
     await register({
@@ -80,9 +101,9 @@ const handleRegister = async () => {
       nickname: form.nickname
     })
     ElMessage.success('注册成功，请登录')
-    router.push('/login')
+    router.push('/login')           // 注册成功跳转登录页
   } catch (e) {
-    // handled
+    // 错误由拦截器统一处理
   } finally {
     loading.value = false
   }
@@ -90,6 +111,7 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
+/* 注册页全屏居中布局 */
 .login-page {
   min-height: 100dvh;
   display: flex;
@@ -100,6 +122,7 @@ const handleRegister = async () => {
   overflow: hidden;
 }
 
+/* 装饰性背景光晕 */
 .login-page::before {
   content: '';
   position: absolute;
@@ -124,6 +147,7 @@ const handleRegister = async () => {
   pointer-events: none;
 }
 
+/* 注册卡片 */
 .login-card {
   width: 440px;
   padding: 36px 32px 28px;
@@ -145,6 +169,7 @@ const handleRegister = async () => {
   letter-spacing: -0.02em;
 }
 
+/* 底部登录链接 */
 .footer-link {
   text-align: center;
   color: var(--color-text-tertiary);

@@ -1,7 +1,12 @@
+<!--
+  订单列表页
+  按状态筛选订单，支持支付、确认收货、退货、取消等操作
+-->
 <template>
   <div class="order-page">
     <h2>我的订单</h2>
-    <!--订单导航栏-->
+
+    <!-- 订单状态标签页 -->
     <el-tabs v-model="activeStatus" @tab-change="loadOrders">
       <el-tab-pane label="全部" name=""/>
       <el-tab-pane label="待付款" name="0"/>
@@ -12,15 +17,16 @@
       <el-tab-pane label="已退货" name="5"/>
     </el-tabs>
 
-    <!--订单列表项-->
+    <!-- 订单列表 -->
     <div class="order-list">
       <el-card v-for="order in orders" :key="order.id" class="order-card" v-loading="loading">
-        <!--订单号-->
+        <!-- 订单头部：订单号 + 状态标签 -->
         <div class="order-header">
           <span>订单号: {{ order.orderNo }}</span>
           <el-tag :type="getStatusType(order.status)">{{ order.statusText }}</el-tag>
         </div>
-        <!--订单信息（商品名称、价格*数量）-->
+
+        <!-- 订单商品列表 -->
         <div class="order-items">
           <div v-for="item in order.items" :key="item.productId" class="order-item">
             <img :src="item.productImage" class="item-img"/>
@@ -30,23 +36,31 @@
             </div>
           </div>
         </div>
-        <!--订单角（对当前订单的操作）-->
+
+        <!-- 订单底部：金额 + 操作按钮 -->
         <div class="order-footer">
           <span class="total">合计: ¥{{ order.totalAmount }}</span>
           <div class="actions">
+            <!-- 待付款：可支付或取消 -->
             <el-button v-if="order.status === 0" type="primary" size="small" @click="handlePay(order)">
               去支付
-            </el-button>
-            <el-button v-if="order.status === 2" type="success" size="small" @click="handleConfirm(order)">
-              确认收货
-            </el-button>
-            <el-button v-if="order.status === 1 || order.status === 2" type="warning" size="small"
-                       @click="handleReturn(order)">
-              申请退货
             </el-button>
             <el-button v-if="order.status === 0" size="small" @click="handleCancel(order)">
               取消订单
             </el-button>
+
+            <!-- 已发货：可确认收货 -->
+            <el-button v-if="order.status === 2" type="success" size="small" @click="handleConfirm(order)">
+              确认收货
+            </el-button>
+
+            <!-- 已付款/已发货：可申请退货 -->
+            <el-button v-if="order.status === 1 || order.status === 2" type="warning" size="small"
+                       @click="handleReturn(order)">
+              申请退货
+            </el-button>
+
+            <!-- 查看详情 -->
             <el-button text size="small" @click="router.push(`/order/${order.id}`)">
               查看详情
             </el-button>
@@ -55,9 +69,10 @@
       </el-card>
     </div>
 
+    <!-- 空状态 -->
     <el-empty v-if="orders.length === 0" description="暂无订单"/>
 
-    <!--分页插件-->
+    <!-- 分页 -->
     <div class="pagination" v-if="total > 10">
       <el-pagination v-model:current-page="currentPage" :page-size="10" :total="total"
                      layout="prev, pager, next" @current-change="loadOrders"/>
@@ -72,18 +87,22 @@ import {ElMessage, ElMessageBox} from 'element-plus'
 import {getOrderList, cancelOrder, payOrder, confirmOrder, returnOrder} from '../../api/order'
 
 const router = useRouter()
-const orders = ref([])
-const activeStatus = ref('')
+const orders = ref([])           // 订单列表
+const activeStatus = ref('')     // 当前选中的状态筛选
 const currentPage = ref(1)
 const total = ref(0)
 const loading = ref(false)
 
+/**
+ * 获取订单状态对应的标签类型
+ * 0-待付款 1-已付款 2-已发货 3-已完成 4-已取消 5-已退货
+ */
 const getStatusType = (status) => {
   const types = ['warning', 'success', 'primary', 'success', 'info', 'danger']
-  //               0待付款    1已付款    2已发货    3已完成    4已取消   5已退货
   return types[status] || 'info'
 }
 
+/** 加载订单列表 */
 const loadOrders = async () => {
   loading.value = true
   try {
@@ -97,6 +116,7 @@ const loadOrders = async () => {
   }
 }
 
+/** 确认收货 */
 const handleConfirm = async (order) => {
   await ElMessageBox.confirm('确认已收到商品？', '提示')
   await confirmOrder(order.id)
@@ -104,6 +124,7 @@ const handleConfirm = async (order) => {
   loadOrders()
 }
 
+/** 模拟支付 */
 const handlePay = async (order) => {
   await ElMessageBox.confirm(`确认支付 ¥${order.totalAmount}？`, '模拟支付')
   await payOrder(order.id)
@@ -111,6 +132,7 @@ const handlePay = async (order) => {
   loadOrders()
 }
 
+/** 取消订单 */
 const handleCancel = async (order) => {
   await ElMessageBox.confirm('确定取消该订单？', '提示')
   await cancelOrder(order.id)
@@ -118,6 +140,7 @@ const handleCancel = async (order) => {
   loadOrders()
 }
 
+/** 申请退货 */
 const handleReturn = async (order) => {
   await ElMessageBox.confirm('确定申请退货？退货后将自动恢复库存。', '申请退货')
   await returnOrder(order.id)
@@ -157,6 +180,7 @@ h2 {
   box-shadow: var(--shadow-card-hover);
 }
 
+/* 订单头部 */
 .order-header {
   display: flex;
   justify-content: space-between;
@@ -166,6 +190,7 @@ h2 {
   font-size: 14px;
 }
 
+/* 订单商品项 */
 .order-item {
   display: flex;
   align-items: center;
@@ -181,6 +206,7 @@ h2 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
 }
 
+/* 订单底部 */
 .order-footer {
   display: flex;
   justify-content: space-between;

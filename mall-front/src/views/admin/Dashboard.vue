@@ -1,7 +1,14 @@
+<!--
+  仪表盘页面
+  展示商品、订单、用户的统计数据
+-->
 <template>
   <div class="dashboard">
     <h2>仪表盘</h2>
+
+    <!-- 统计卡片 -->
     <el-row :gutter="20" v-loading="loading">
+      <!-- 商品总数 -->
       <el-col :xs="24" :sm="8" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
@@ -10,6 +17,8 @@
           <div class="stat-value">{{ stats.productCount }}</div>
         </el-card>
       </el-col>
+
+      <!-- 订单总数 -->
       <el-col :xs="24" :sm="8" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
@@ -18,6 +27,8 @@
           <div class="stat-value">{{ stats.orderCount }}</div>
         </el-card>
       </el-col>
+
+      <!-- 用户总数 -->
       <el-col :xs="24" :sm="8" style="margin-bottom: 16px">
         <el-card shadow="hover">
           <template #header>
@@ -37,6 +48,7 @@ import { getDashboardStats } from '../../api/admin'
 const loading = ref(false)
 const stats = ref({ productCount: 0, orderCount: 0, userCount: 0 })
 
+/** 加载统计数据 */
 const loadStats = async () => {
   loading.value = true
   try {
@@ -64,6 +76,7 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 
+/* 统计数值 */
 .stat-value {
   font-size: 38px;
   font-weight: 800;

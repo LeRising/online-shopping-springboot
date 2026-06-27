@@ -1,21 +1,34 @@
+<!--
+  用户登录页
+  表单验证 + 调用登录接口 + 保存 Token
+-->
 <template>
   <div class="login-page">
     <el-card class="login-card">
       <h2 class="title">用户登录</h2>
+
+      <!-- 登录表单 -->
       <el-form ref="formRef" :model="form" :rules="rules" label-width="0">
+        <!-- 用户名 -->
         <el-form-item prop="username">
           <el-input v-model="form.username" placeholder="用户名" prefix-icon="User" size="large" />
         </el-form-item>
+
+        <!-- 密码（支持回车登录） -->
         <el-form-item prop="password">
           <el-input v-model="form.password" placeholder="密码" prefix-icon="Lock" type="password"
             show-password size="large" @keyup.enter="handleLogin" />
         </el-form-item>
+
+        <!-- 登录按钮 -->
         <el-form-item>
           <el-button type="primary" size="large" style="width: 100%" :loading="loading" @click="handleLogin">
             登录
           </el-button>
         </el-form-item>
       </el-form>
+
+      <!-- 注册链接 -->
       <div class="footer-link">
         还没有账号？<router-link to="/register">立即注册</router-link>
       </div>
@@ -32,29 +45,32 @@ import { useUserStore } from '../../store/user'
 
 const router = useRouter()
 const userStore = useUserStore()
-const formRef = ref()
-const loading = ref(false)
+const formRef = ref()          // 表单引用（用于验证）
+const loading = ref(false)     // 登录按钮加载状态
 
+// 表单数据
 const form = reactive({
   username: '',
   password: ''
 })
 
+// 表单验证规则
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }
 
+/** 执行登录 */
 const handleLogin = async () => {
-  await formRef.value.validate()
+  await formRef.value.validate()    // 触发表单验证
   loading.value = true
   try {
     const res = await login(form)
-    userStore.setLogin(res.data)
+    userStore.setLogin(res.data)    // 保存登录状态
     ElMessage.success('登录成功')
-    router.push('/')
+    router.push('/')                // 跳转首页
   } catch (e) {
-    // handled
+    // 错误由拦截器统一处理
   } finally {
     loading.value = false
   }
@@ -62,6 +78,7 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
+/* 登录页全屏居中布局 */
 .login-page {
   min-height: 100dvh;
   display: flex;
@@ -72,6 +89,7 @@ const handleLogin = async () => {
   overflow: hidden;
 }
 
+/* 装饰性背景光晕 */
 .login-page::before {
   content: '';
   position: absolute;
@@ -96,6 +114,7 @@ const handleLogin = async () => {
   pointer-events: none;
 }
 
+/* 登录卡片 */
 .login-card {
   width: 420px;
   padding: 36px 32px 28px;
@@ -117,6 +136,7 @@ const handleLogin = async () => {
   letter-spacing: -0.02em;
 }
 
+/* 底部注册链接 */
 .footer-link {
   text-align: center;
   color: var(--color-text-tertiary);

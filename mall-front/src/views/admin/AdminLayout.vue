@@ -1,10 +1,18 @@
+<!--
+  后台管理布局组件
+  左侧导航菜单 + 右侧内容区
+-->
 <template>
   <el-container class="admin-layout">
+    <!-- ==================== 左侧边栏 ==================== -->
     <el-aside width="200px" class="aside">
+      <!-- Logo -->
       <div class="logo" @click="router.push('/')">
         <el-icon><Setting /></el-icon>
         <span>后台管理</span>
       </div>
+
+      <!-- 导航菜单 -->
       <el-menu :default-active="route.path" router class="menu">
         <el-menu-item index="/admin">
           <el-icon><DataAnalysis /></el-icon>
@@ -28,11 +36,16 @@
         </el-menu-item>
       </el-menu>
     </el-aside>
+
+    <!-- ==================== 右侧内容区 ==================== -->
     <el-container>
+      <!-- 顶部栏：管理员信息 + 返回前台按钮 -->
       <el-header class="header">
         <span>管理员: {{ userStore.nickname }}</span>
         <el-button text @click="router.push('/')">返回前台</el-button>
       </el-header>
+
+      <!-- 主内容：子路由出口 -->
       <el-main>
         <router-view />
       </el-main>
@@ -54,6 +67,7 @@ const userStore = useUserStore()
   min-height: 100dvh;
 }
 
+/* 侧边栏 */
 .aside {
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
 }
@@ -70,6 +84,7 @@ const userStore = useUserStore()
   letter-spacing: -0.01em;
 }
 
+/* 菜单样式 */
 .menu {
   border: none;
   background: transparent;
@@ -88,12 +103,14 @@ const userStore = useUserStore()
   color: #e2e8f0;
 }
 
+/* 当前激活菜单项 */
 .menu .el-menu-item.is-active {
   background: rgba(37,99,235,.2);
   color: #93c5fd;
   font-weight: 600;
 }
 
+/* 顶部栏 */
 .header {
   display: flex;
   justify-content: space-between;

@@ -1,10 +1,16 @@
+<!--
+  公告管理页面
+  支持公告的增删改查操作
+-->
 <template>
   <div class="banner-manage">
+    <!-- 标题栏 -->
     <div class="header">
       <h2>公告管理</h2>
       <el-button type="primary" @click="handleAdd">新增公告</el-button>
     </div>
 
+    <!-- 公告列表表格 -->
     <el-table :data="banners" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="content" label="公告内容" min-width="400" />
@@ -21,6 +27,7 @@
     <!-- 新增/编辑对话框 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑公告' : '新增公告'" width="600px">
       <el-form :model="form" label-width="100px">
+        <!-- 公告内容 -->
         <el-form-item label="公告内容" required>
           <el-input
             v-model="form.content"
@@ -29,6 +36,7 @@
             placeholder="请输入公告内容"
           />
         </el-form-item>
+        <!-- 排序值 -->
         <el-form-item label="排序">
           <el-input-number v-model="form.sort" :min="0" :max="999" />
         </el-form-item>
@@ -46,17 +54,21 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAdminBannerList, addBanner, updateBanner, deleteBanner } from '../../api/admin'
 
-const banners = ref([])
+// ==================== 响应式状态 ====================
+const banners = ref([])            // 公告列表
 const loading = ref(false)
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const submitting = ref(false)
+const dialogVisible = ref(false)   // 对话框显示状态
+const isEdit = ref(false)          // 是否为编辑模式
+const submitting = ref(false)      // 提交按钮加载状态
 const form = ref({
   id: null,
   content: '',
   sort: 0
 })
 
+// ==================== 数据加载 ====================
+
+/** 加载公告列表 */
 const loadBanners = async () => {
   loading.value = true
   try {
@@ -67,12 +79,16 @@ const loadBanners = async () => {
   }
 }
 
+// ==================== 事件处理 ====================
+
+/** 打开新增对话框 */
 const handleAdd = () => {
   isEdit.value = false
   form.value = { id: null, content: '', sort: 0 }
   dialogVisible.value = true
 }
 
+/** 打开编辑对话框 */
 const handleEdit = (row) => {
   isEdit.value = true
   form.value = {
@@ -83,6 +99,7 @@ const handleEdit = (row) => {
   dialogVisible.value = true
 }
 
+/** 提交表单（新增/编辑） */
 const handleSubmit = async () => {
   if (!form.value.content.trim()) {
     ElMessage.warning('请输入公告内容')
@@ -110,6 +127,7 @@ const handleSubmit = async () => {
   }
 }
 
+/** 删除公告 */
 const handleDelete = async (row) => {
   await ElMessageBox.confirm('确定删除该公告？', '提示')
   await deleteBanner(row.id)
@@ -117,6 +135,7 @@ const handleDelete = async (row) => {
   loadBanners()
 }
 
+// ==================== 生命周期 ====================
 onMounted(() => {
   loadBanners()
 })

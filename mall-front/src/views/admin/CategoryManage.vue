@@ -1,10 +1,16 @@
+<!--
+  分类管理页面
+  支持分类的增删改查操作
+-->
 <template>
   <div class="category-manage">
+    <!-- 标题栏 -->
     <div class="header">
       <h2>分类管理</h2>
       <el-button type="primary" @click="handleAdd">新增分类</el-button>
     </div>
 
+    <!-- 分类列表表格 -->
     <el-table :data="categories" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="分类名称" min-width="150" />
@@ -41,17 +47,21 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAdminCategoryList, addCategory, updateCategory, deleteCategory } from '../../api/admin'
 
-const categories = ref([])
+// ==================== 响应式状态 ====================
+const categories = ref([])         // 分类列表
 const loading = ref(false)
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const submitting = ref(false)
+const dialogVisible = ref(false)   // 对话框显示状态
+const isEdit = ref(false)          // 是否为编辑模式
+const submitting = ref(false)      // 提交按钮加载状态
 const form = ref({
   id: null,
   name: '',
   sort: 0
 })
 
+// ==================== 数据加载 ====================
+
+/** 加载分类列表 */
 const loadCategories = async () => {
   loading.value = true
   try {
@@ -62,12 +72,16 @@ const loadCategories = async () => {
   }
 }
 
+// ==================== 事件处理 ====================
+
+/** 打开新增对话框 */
 const handleAdd = () => {
   isEdit.value = false
   form.value = { id: null, name: '', sort: 0 }
   dialogVisible.value = true
 }
 
+/** 打开编辑对话框 */
 const handleEdit = (row) => {
   isEdit.value = true
   form.value = {
@@ -78,6 +92,7 @@ const handleEdit = (row) => {
   dialogVisible.value = true
 }
 
+/** 提交表单（新增/编辑） */
 const handleSubmit = async () => {
   if (!form.value.name.trim()) {
     ElMessage.warning('请输入分类名称')
@@ -100,6 +115,7 @@ const handleSubmit = async () => {
   }
 }
 
+/** 删除分类 */
 const handleDelete = async (row) => {
   await ElMessageBox.confirm(`确定删除分类"${row.name}"？`, '提示')
   await deleteCategory(row.id)
@@ -107,6 +123,7 @@ const handleDelete = async (row) => {
   loadCategories()
 }
 
+// ==================== 生命周期 ====================
 onMounted(() => {
   loadCategories()
 })

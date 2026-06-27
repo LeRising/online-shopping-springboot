@@ -1,11 +1,11 @@
-/* ============================================
-   网上商城 - Design System Theme
-   Override Element Plus CSS Variables
-   ============================================ */
+/**
+ * 全局主题样式文件
+ * 覆盖 Element Plus 默认 CSS 变量，定义自定义设计令牌（Design Tokens）
+ */
 
 :root {
-  /* ---- Brand Colors ---- */
-  --el-color-primary: #2563eb;
+  /* ==================== 品牌色彩 ==================== */
+  --el-color-primary: #2563eb;           /* 主色调：蓝色 */
   --el-color-primary-light-3: #5b8af0;
   --el-color-primary-light-5: #8aabf5;
   --el-color-primary-light-7: #b8cafa;
@@ -13,12 +13,12 @@
   --el-color-primary-light-9: #e5eafd;
   --el-color-primary-dark-2: #1d4ed8;
 
-  --el-color-success: #10b981;
-  --el-color-warning: #f59e0b;
-  --el-color-danger: #ef4444;
-  --el-color-info: #64748b;
+  --el-color-success: #10b981;           /* 成功：绿色 */
+  --el-color-warning: #f59e0b;           /* 警告：橙色 */
+  --el-color-danger: #ef4444;            /* 危险：红色 */
+  --el-color-info: #64748b;             /* 信息：灰色 */
 
-  /* ---- Typography ---- */
+  /* ==================== 字体 ==================== */
   --el-font-family:
     'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB',
     'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
@@ -28,45 +28,49 @@
   --el-font-size-small: 13px;
   --el-font-size-extra-small: 12px;
 
-  /* ---- Borders & Radius ---- */
+  /* ==================== 边框与圆角 ==================== */
   --el-border-radius-base: 10px;
   --el-border-radius-small: 6px;
   --el-border-radius-round: 9999px;
   --el-border-color: #e2e8f0;
   --el-border-color-light: #f1f5f9;
 
-  /* ---- Shadows ---- */
+  /* ==================== 阴影 ==================== */
   --el-box-shadow-light: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.06);
 
-  /* ---- Backgrounds ---- */
-  --color-bg-page: #f1f5f9;
-  --color-bg-surface: #ffffff;
-  --color-bg-warm: #fffbeb;
-  --color-bg-accent: #eff6ff;
+  /* ==================== 背景色 ==================== */
+  --color-bg-page: #f1f5f9;             /* 页面背景 */
+  --color-bg-surface: #ffffff;          /* 卡片/面板背景 */
+  --color-bg-warm: #fffbeb;             /* 暖色调背景 */
+  --color-bg-accent: #eff6ff;           /* 强调色背景 */
 
-  /* ---- Custom Design Tokens ---- */
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-tertiary: #94a3b8;
-  --color-text-price: #dc2626;
+  /* ==================== 文字颜色 ==================== */
+  --color-text-primary: #0f172a;        /* 主要文字 */
+  --color-text-secondary: #475569;      /* 次要文字 */
+  --color-text-tertiary: #94a3b8;       /* 辅助文字 */
+  --color-text-price: #dc2626;          /* 价格文字 */
 
-  --color-accent-warm: #f97316;
-  --color-accent-cool: #06b6d4;
+  /* ==================== 强调色 ==================== */
+  --color-accent-warm: #f97316;         /* 暖强调色 */
+  --color-accent-cool: #06b6d4;         /* 冷强调色 */
 
+  /* ==================== 自定义圆角 ==================== */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-xl: 24px;
 
-  --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-card-hover: 0 10px 25px rgba(0,0,0,.08), 0 4px 10px rgba(0,0,0,.04);
-  --shadow-dialog: 0 25px 50px rgba(0,0,0,.15);
+  /* ==================== 自定义阴影 ==================== */
+  --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);           /* 卡片阴影 */
+  --shadow-card-hover: 0 10px 25px rgba(0,0,0,.08), 0 4px 10px rgba(0,0,0,.04);  /* 卡片悬停阴影 */
+  --shadow-dialog: 0 25px 50px rgba(0,0,0,.15);                                   /* 弹窗阴影 */
 
-  --space-section: 2.5rem;
-  --space-element: 1.25rem;
+  /* ==================== 间距 ==================== */
+  --space-section: 2.5rem;              /* 区块间距 */
+  --space-element: 1.25rem;             /* 元素间距 */
 }
 
-/* ---- Global Resets ---- */
+/* ==================== 全局重置 ==================== */
 *,
 *::before,
 *::after {
@@ -74,8 +78,8 @@
 }
 
 html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;      /* macOS 字体平滑 */
+  -moz-osx-font-smoothing: grayscale;      /* Firefox 字体平滑 */
 }
 
 body {
@@ -86,7 +90,7 @@ body {
   margin: 0;
 }
 
-/* ---- Scrollbar ---- */
+/* ==================== 自定义滚动条 ==================== */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -102,9 +106,9 @@ body {
   background: #94a3b8;
 }
 
-/* ---- Element Plus Component Refinements ---- */
+/* ==================== Element Plus 组件样式覆盖 ==================== */
 
-/* Card */
+/* 卡片组件 */
 .el-card {
   border: none !important;
   box-shadow: var(--shadow-card) !important;
@@ -115,7 +119,7 @@ body {
   box-shadow: var(--shadow-card-hover) !important;
 }
 
-/* Button */
+/* 按钮组件 */
 .el-button {
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -129,10 +133,10 @@ body {
   background: var(--el-color-primary-dark-2);
 }
 .el-button:active {
-  transform: translateY(1px);
+  transform: translateY(1px);  /* 点击下沉效果 */
 }
 
-/* Input */
+/* 输入框组件 */
 .el-input__wrapper {
   border-radius: var(--radius-sm) !important;
   box-shadow: 0 1px 2px rgba(0,0,0,.04) !important;
@@ -142,29 +146,29 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,.06) !important;
 }
 
-/* Tag */
+/* 标签组件 */
 .el-tag {
   border-radius: var(--radius-sm);
   font-weight: 500;
 }
 
-/* Menu (admin sidebar) */
+/* 菜单组件（后台侧边栏） */
 .el-menu {
   border-right: none !important;
 }
 
-/* Dialog */
+/* 弹窗组件 */
 .el-dialog {
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-dialog) !important;
 }
 
-/* Pagination */
+/* 分页组件 */
 .el-pagination .el-pager li.is-active {
   border-radius: var(--radius-sm);
 }
 
-/* Table */
+/* 表格组件 */
 .el-table {
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -178,22 +182,22 @@ body {
   letter-spacing: 0.05em;
 }
 
-/* Tabs */
+/* 标签页组件 */
 .el-tabs__item {
   font-weight: 500;
 }
 
-/* Badge */
+/* 徽章组件 */
 .el-badge__content {
   border: 2px solid #fff;
 }
 
-/* Empty state */
+/* 空状态组件 */
 .el-empty__description {
   color: var(--color-text-tertiary);
 }
 
-/* Loading */
+/* 加载遮罩 */
 .el-loading-mask {
   border-radius: var(--radius-md);
 }
