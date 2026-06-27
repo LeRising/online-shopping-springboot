@@ -29,3 +29,5 @@ dump.rdb
 
 # 文档（本地保留，不推送到远程）
 docs/
+
+.claude
